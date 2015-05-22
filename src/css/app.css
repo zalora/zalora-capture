@@ -18,7 +18,7 @@ body {
     height: 100%;
     overflow-x: scroll;
     z-index: 8;
-    width: 400px;
+    width: 300px;
     position: absolute;
     top: 0;
     right: 0;
@@ -32,7 +32,7 @@ body {
     padding-top: 70px;
     padding-left:0;
     padding-right: 0;
-    margin-right: 400px;
+    margin-right: 300px;
 }
 
 #draw-canvas,
@@ -156,13 +156,16 @@ body {
     left: 0;
     border: none;
     background: transparent;
-    height: 40px;
+    /*height: 40px;*/
     font-size: 16px;
     font-weight: bold;
     border: 1px solid #ddd;
-    border-radius: 4px;
+    border-left: 7px solid #ddd;
+    border-top-right-radius: 4px;
+    border-bottom-right-radius: 4px;
     padding: 5px 10px;
     width: auto;
+    line-height: 140%;
 }
 
 #text-layer:focus,

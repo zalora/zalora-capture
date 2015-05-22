@@ -234,34 +234,49 @@ app.factory('Drawer', ['CaptureAPIs', function (CaptureAPIs) {
         if (typeof params.init !== 'undefined') {
             params.init();
         }
+    };
 
-        console.log(self);
+    Tool.prototype.initNewItem = function () {
+        console.log(_items);
+        _currentItem = this.params.createNode(event);
+
+        if (!_currentItem) {
+            return;
+        }
+
+        _currentItem.coords = {
+            start: {x: 0, y: 0},
+            end: {x: 0, y: 0}
+        };
+
+        if (typeof event.dontSetDefaultAttrs === 'undefined' || !event.dontSetDefaultAttrs) {
+            for (var attr in _defaultAttrs) {
+                _currentItem.attr(attr, _defaultAttrs[attr]);
+            }
+        }
+
+        // _currentItem.drag();
+        _currentItem.attr('stroke', _settings.color);
+
+        _items.push(_currentItem);
+        // CaptureStorage.saveData({'draw_items': _items});
     };
 
     Tool.prototype.mousedown = function (event) {
+        if (typeof this.params.events.beforeMousedown !== 'undefined') {
+            this.params.events.beforeMousedown(event, _currentItem);
+
+            if (_currentItem && _currentItem.removed) {
+                _items.splice(_items.length - 1, 1);
+            }
+
+            if (event.setItemNull) {
+                _currentItem = null;
+            }
+        }
+
         if (!_currentItem) {
-            _currentItem = this.params.createNode(event);
-
-            if (!_currentItem) {
-                return;
-            }
-
-            _currentItem.coords = {
-                start: {x: 0, y: 0},
-                end: {x: 0, y: 0}
-            };
-
-            if (typeof event.dontSetDefaultAttrs === 'undefined' || !event.dontSetDefaultAttrs) {
-                for (var attr in _defaultAttrs) {
-                    _currentItem.attr(attr, _defaultAttrs[attr]);
-                }
-            }
-
-            // _currentItem.drag();
-            _currentItem.attr('stroke', _settings.color);
-
-            _items.push(_currentItem);
-            // CaptureStorage.saveData({'draw_items': _items});
+            this.initNewItem();
         }
 
         _currentItem.coords.start = {
@@ -274,7 +289,6 @@ app.factory('Drawer', ['CaptureAPIs', function (CaptureAPIs) {
         };
 
         if (typeof this.params.events.mousedown !== 'undefined') {
-            console.log(_currentItem);
             this.params.events.mousedown(event, _currentItem);
         }
 
@@ -288,7 +302,11 @@ app.factory('Drawer', ['CaptureAPIs', function (CaptureAPIs) {
 
         this.render();
 
-        if (!event.dontSetNull) {
+        if (_currentItem.removed) {
+            _items.splice(_items.length - 1, 1);
+        }
+
+        if (!event.dontSetItemNull) {
             _currentItem = null;
         }
     };
@@ -318,10 +336,6 @@ app.factory('Drawer', ['CaptureAPIs', function (CaptureAPIs) {
         if (typeof this.params.events.keypress !== 'undefined') {
             this.params.events.keypress(event, _currentItem);
         }
-
-        if (event.which == 13) {
-            _currentItem = null;
-        }
     };
 
     return {
@@ -329,7 +343,15 @@ app.factory('Drawer', ['CaptureAPIs', function (CaptureAPIs) {
             _tools[name] = new Tool(params);
         },
         setActiveTool: function (tool) {
+            console.log('check', _currentItem, _activeTool);
+            if (_currentItem && _activeTool != null) {
+                if (_tools[_activeTool].params.events.beforeMousedown) {
+                    _tools[_activeTool].params.events.beforeMousedown({}, _currentItem);
+                }
+            }
+
             _activeTool = tool;
+            _currentItem = null;
         },
         getTools: function () {
             return _tools;
@@ -401,15 +423,30 @@ app.factory('Drawer', ['CaptureAPIs', function (CaptureAPIs) {
  * directives
  */
 
+app.directive("contenteditable", function() {
+    return {
+        restrict: "A",
+        require: "ngModel",
+        link: function(scope, element, attrs, ngModel) {
+            function read() {
+                ngModel.$setViewValue(element.html());
+            }
+
+            ngModel.$render = function() {
+                element.html(ngModel.$viewValue || "");
+            };
+
+            element.bind("blur keyup change", function() {
+                scope.$apply(read);
+            });
+        }
+    };
+});
+
 app.directive('captureTextLayer', ['Drawer', '$timeout', function (Drawer, $timeout) {
     return {
         restrict: 'A',
         link: function ($scope, $element, $attrs) {
-            $element.on('keypress', function (event) {
-                event.data = $scope.textlayerData;
-                Drawer.getTool('text').keypress(event);
-            });
-
             $scope.$watch($attrs.captureFocus, function (value) {
                 if (value === true) {
                     $scope[$attrs.captureFocus] = false;
@@ -469,6 +506,7 @@ app.controller('DrawController', ['$scope', 'Drawer', '$sce', function ($scope, 
         left: 0,
         data: ''
     };
+    $scope.textlayerData = '';
 
     Drawer.addTool('rect', {
         id: 'rect',
@@ -614,7 +652,17 @@ app.controller('DrawController', ['$scope', 'Drawer', '$sce', function ($scope, 
             mousedown: function (event, item) {
             },
             mousemove: function (event, item) {
-                item.points.push([event.offsetX, event.offsetY]);
+                // console.log(item.points.length);
+                if (item.points.length > 1) {
+                    var lastPoint = item.points[item.points
+                        .length - 1],
+                        dist = Math.sqrt(Math.pow(event.offsetX - lastPoint[0], 2) + Math.pow(event.offsetY - lastPoint[1], 2));
+                    if (dist > 5) {
+                        item.points.push([event.offsetX, event.offsetY]);
+                    }
+                } else {
+                    item.points.push([event.offsetX, event.offsetY]);
+                }
             },
             mouseup: function (event, item) {
             }
@@ -651,11 +699,37 @@ app.controller('DrawController', ['$scope', 'Drawer', '$sce', function ($scope, 
             item.attr('stroke-width', 0);
             item.attr('font-weight', 'bold');
             item.attr('font-size', '16px');
+            item.attr('font-family', 'Arial, Helvetica, sans-serif');
             item.attr('fill', Drawer.getSetting('color'));
 
             return item;
         },
         events: {
+            beforeMousedown: function (event, item) {
+                if (item) {
+                    if ($scope.textlayerData.trim() == '') {
+                        item.remove();
+                    } else {
+                        var text = $scope.textlayerData.replace(/<\/div>/g, '').replace(/<div>/g, "<br>");
+
+                        text = text.split("<br>");
+                        item.attr('text', text);
+
+                        item.selectAll("tspan:nth-child(n+2)").attr({
+                            dy: "1.4em",
+                            x: item.attr('x')
+                        });
+                        $scope.textlayerData = '';
+                    }
+
+                    if ($scope.textLayer.focus) {
+                        $scope.$apply(function () {
+                            $scope.textLayer.focus = false;
+                        });
+                    }
+                    event.setItemNull = true;
+                }
+            },
             mousedown: function (event, item) {
             },
             mousemove: function (event, item) {
@@ -671,24 +745,7 @@ app.controller('DrawController', ['$scope', 'Drawer', '$sce', function ($scope, 
                     item.attr('y', event.offsetY);
                 });
 
-                event.dontSetNull = true;
-            },
-            keypress: function (event, item) {
-                if (event.which == 13) {
-                    event.preventDefault();
-
-                    if (event.data.trim() == '') {
-                        return item.remove();
-                    }
-
-                    item.attr('text', event.data);
-
-                    $scope.$apply(function () {
-                        $scope.textLayer.isShow = false;
-                        $scope.textlayerData = '';
-                        $scope.textLayer.focus = false;
-                    });
-                }
+                event.dontSetItemNull = true;
             }
         },
         render: function (item) {
@@ -713,12 +770,13 @@ app.controller('DrawController', ['$scope', 'Drawer', '$sce', function ($scope, 
     // });
 
 
-    Drawer.setActiveTool('rect');
+    Drawer.setActiveTool('text');
 
     $scope.tools = Drawer.getTools();
     $scope.activeTool = Drawer.getActiveTool();
     $scope.setActiveTool = function (id) {
         Drawer.setActiveTool(id);
+        $scope.textLayer.isShow = false;
         $scope.activeTool = Drawer.getActiveTool();
     };
 

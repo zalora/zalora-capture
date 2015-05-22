@@ -40,7 +40,7 @@
                 </div>
                 <div class="canvas-content">
                     <svg id="draw-canvas" capture-canvas class="{{activeTool.params.id}}"></svg>
-                    <input type="text" ng-show="textLayer.isShow" ng-cloak name="text-layer" id="text-layer" style="color: {{activeColor}}; border-color: {{activeColor}}; top: {{textLayer.top - 26}}px; left: {{textLayer.left - 11}}px" ng-model="textlayerData" capture-text-layer capture-focus="textLayer.focus" ng-blur="textLayer.focus = false"/>
+                    <div type="text" ng-show="textLayer.isShow" ng-cloak name="text-layer" id="text-layer" style="color: {{activeColor}}; border-color: {{activeColor}}; top: {{textLayer.top - 23}}px; left: {{textLayer.left - 17}}px" ng-model="textlayerData" capture-text-layer capture-focus="textLayer.focus" ng-blur="textLayer.focus = false" contenteditable></div>
                 </div>
             </div>
             <div id="sidebar" class="" ng-controller="MainController">
