@@ -6,19 +6,17 @@
 "use strict";
 
 var CaptureStorage = (function () {
-    var _configs = {
-        storage_prefix: 'com.zalora.capture.'
-    };
+    var _configs = CaptureConfigs.get('storage');
 
     var _addDataPrefix = function (data) {
         if (typeof data == 'string') {
-            return _configs['storage_prefix'] + data;
+            return _configs['prefix'] + data;
         } else if (Array.isArray(data)) {
             var results = [];
 
             for(var key in data) {
                 var value = data[key];
-                results.push(_configs['storage_prefix'] + value);
+                results.push(_configs['prefix'] + value);
             }
 
             return results;
@@ -27,7 +25,7 @@ var CaptureStorage = (function () {
 
             for(var key in data) {
                 var value = data[key];
-                results[_configs['storage_prefix'] + key] = value;
+                results[_configs['prefix'] + key] = value;
             }
 
             return results;
@@ -39,7 +37,7 @@ var CaptureStorage = (function () {
 
         for(var key in data) {
             var value = data[key];
-            results[key.replace(_configs['storage_prefix'], '')] =  value;
+            results[key.replace(_configs['prefix'], '')] =  value;
         }
 
         return results;

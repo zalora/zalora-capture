@@ -201,7 +201,7 @@ app.factory('Drawer', ['CaptureAPIs', function (CaptureAPIs) {
 
 app.controller('DrawController', ['$scope', 'Drawer', '$sce', function ($scope, Drawer, $sce) {
     $scope.canvas = Snap('#draw-canvas');
-    $scope.colors = ['#c0392b', '#d35400', '#f39c12', '#f1c40f', '#16a085', '#2cc36b', '#2980b9', '#8e44ad', '#2c3e50', '#ecf0f1'];
+    $scope.colors = CaptureConfigs.get('canvas', 'colors');
     $scope.textLayer = {
         isShow: false,
         top: 0,
@@ -580,18 +580,7 @@ app.factory('CaptureListener', ['CaptureAPIs', function (CaptureAPIs) {
 
 app.factory('CaptureAPIs', ['$http', '$rootScope', '$filter', function($http, $rootScope, $filter){
     var _configs = {
-        APIs: {
-            auth: '/rest/auth/latest/session?os_authType=none',
-            info: {
-                projects: '/rest/api/2/project',
-                priorities: '/rest/api/2/priority',
-                issue_types: '/rest/api/2/issuetype',
-                // issue_types: '/rest/api/2/issue/createmeta'
-            },
-            create_issue: '/rest/api/2/issue',
-            attach_to_issue: '/rest/api/2/issue/%s/attachments',
-            log_out: '/rest/auth/latest/session'
-        }
+        APIs: CaptureConfigs.get('APIs')
     }, _data = {}, _reporterId = null;
 
     var _setServer = function (server) {
