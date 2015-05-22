@@ -10,7 +10,7 @@
     "128": "icons/icon128.png"
   },
   "background": {
-    "page": "src/bg/background.html"
+    "page": "src/asserts/background.html"
   },
   "browser_action": {
     "default_icon": "icons/icon19.png",
