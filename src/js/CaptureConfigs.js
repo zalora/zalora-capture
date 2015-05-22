@@ -15,6 +15,9 @@ var CaptureConfigs = (function () {
             attach_to_issue: '/rest/api/2/issue/%s/attachments',
             log_out: '/rest/auth/latest/session'
         },
+        app: {
+            url: 'src/index.html'
+        },
         storage: {
             prefix: 'com.zalora.capture.'
         }

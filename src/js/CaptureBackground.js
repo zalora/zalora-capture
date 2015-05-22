@@ -8,7 +8,7 @@
 
 var CaptureBackground = (function () {
     var _configs = {
-        index_tpl: 'src/asserts/index.html'
+        app_url: CaptureConfigs.get('app', 'url')
     },
     _tabs = {
         source: null,
@@ -59,7 +59,7 @@ var CaptureBackground = (function () {
     _createNewTab = function (index) {
         chrome.tabs.create({
             index: index,
-            url: _configs['index_tpl']
+            url: _configs['app_url']
         }, function (tab) {
             console.log('app tab > ', tab.id);
             _tabs.app = tab.id;
