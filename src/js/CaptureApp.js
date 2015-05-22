@@ -8,8 +8,206 @@
 
 var app = angular.module('CaptureApp', []);
 
+
+/**
+ * configs
+ */
+
 app.config(['$httpProvider', function ($httpProvider) {
     $httpProvider.defaults.headers.post['x-restlogin'] = true;
+}]);
+
+/**
+ * services
+ */
+
+app.factory('CaptureListener', ['CaptureAPIs', function (CaptureAPIs) {
+    var _canvas = Snap('#draw-canvas');
+
+    var _init = function () {
+        chrome.runtime.onMessage.addListener(_onMessage);
+    },
+    _actions = {
+        updateScreenshot: function (data) {
+            var image = new Image();
+            image.onload = function () {
+                _canvas.image(data, 0, 0, this.width, this.height);
+                _canvas.attr('width', this.width);
+                _canvas.attr('height', this.height);
+            };
+            image.src =data;
+            // var image = _canvas.image(data, 0, 0);
+            // console.log(image);
+        }
+    },
+    _onMessage = function (request, sender, sendResponse) {
+        console.log('[app] comming request > ', request, sender);
+        sendResponse('[app] received request!');
+
+        if (typeof request.type === 'undefined'
+            || typeof _actions[request.type] === 'undefined') {
+            return false;
+        }
+
+        _actions[request.type](request.data);
+    };
+
+    _init();
+
+    return {
+        actions: _actions
+    };
+}]);
+
+app.factory('CaptureAPIs', ['$http', '$rootScope', '$filter', function($http, $rootScope, $filter){
+    var _configs = {
+        APIs: CaptureConfigs.get('APIs')
+    }, _data = {}, _reporterId = null;
+
+    var _setServer = function (server) {
+        _data['server'] = server;
+    },
+    _auth = function (server, username, password, onSuccess, onError) {
+        $http.post(server + _configs.APIs.auth, {
+            username: username,
+            password, password
+        }).success(function (data, status) {
+            console.log(data, status);
+
+            _reporterId = data.name;
+            _setServer(server);
+            typeof onSuccess !== 'undefined' &&  onSuccess(data, status);
+        }).error(function (data, status) {
+            console.log(data, status);
+            typeof onError !== 'undefined' && onError(data, status);
+        });
+    },
+    _getCurUser = function (server, onSuccess, onError) {
+        $http.get(server + _configs.APIs.auth).success(function (data, status) {
+            console.log(data, status);
+
+            _reporterId = data.name;
+            _setServer(server);
+            typeof onSuccess !== 'undefined' &&  onSuccess(data, status);
+        }).error(function (data, status) {
+            console.log(data, status);
+            typeof onError !== 'undefined' && onError(data, status);
+        });
+    },
+    _parseAPIData = function (data, type) {
+        if (type == 'issue_types') {
+            return data['projects'][0]['issuetypes'];
+        }
+        return data;
+    },
+    _fetchAllAtlassianInfo = function (callback) {
+        angular.forEach(_configs.APIs.info, function(value, key){
+            $http.get(_data['server'] + value).success(function (resp) {
+                // resp = _parseAPIData(resp, key);
+                console.log('set', key, resp);
+                callback(key, resp);
+            });
+        });
+    },
+    _generateMetaData = function (isIncludeEnv, callback) {
+        if (!isIncludeEnv) {
+            callback('');
+            return;
+        }
+
+        var URLs;
+        CaptureStorage.getData('source_url', function (results) {
+            URLs = results['source_url'];
+            var screenRes = screen.width + 'x' + screen.height,
+                userAgent = navigator.userAgent;
+
+            var data = "\n\n\n *Zalora Capture Environment Information* \n- URL: " + URLs + "\n- Screen Resolution: " + screenRes + "\n- User Agent: " + userAgent;
+            callback(data);
+        });
+    },
+    _createIssue = function (projectId, issueTypeId, priorityId, summary, description, isIncludeEnv, onSuccess, onError) {
+        _generateMetaData(isIncludeEnv, function (metaData) {
+            var data = {
+                fields: {
+                    summary: summary,
+                    description: description + metaData,
+                    priority: {
+                        id: priorityId
+                    },
+                    project: {
+                        id: projectId
+                    },
+                    issuetype: {
+                        id: issueTypeId
+                    }
+                }
+            };
+            // console.log(data); return;
+            $http.post(_data['server'] + _configs.APIs.create_issue, data).success(function (resp) {
+                onSuccess(resp);
+            }).error(function (resp) {
+                onError(resp);
+            });
+        });
+    },
+    _dataURLToBlob = function(dataURL) {
+        var BASE64_MARKER = ';base64,';
+        if (dataURL.indexOf(BASE64_MARKER) == -1) {
+            var parts = dataURL.split(',');
+            var contentType = parts[0].split(':')[1];
+            var raw = decodeURIComponent(parts[1]);
+
+            return new Blob([raw], {type: contentType});
+        }
+
+        var parts = dataURL.split(BASE64_MARKER);
+        var contentType = parts[0].split(':')[1];
+        var raw = window.atob(parts[1]);
+        var rawLength = raw.length;
+
+        var uInt8Array = new Uint8Array(rawLength);
+
+        for (var i = 0; i < rawLength; ++i) {
+            uInt8Array[i] = raw.charCodeAt(i);
+        }
+
+        return new Blob([uInt8Array], {type: contentType});
+    },
+    _attachToIssue = function (key, data, onSuccess, onError) {
+        var url = _data['server'] + _configs.APIs.attach_to_issue.replace('%s', key);
+
+        var fd = new FormData(),
+            fileName = 'Screen Shot ' + $filter('date')(Date.now(), "yyyy-MM-dd 'at' h:mma" + '.png');
+
+        fd.append('file', _dataURLToBlob(data), fileName);
+
+        $http.post(url, fd, {
+            transformRequest: angular.identity,
+            headers: {
+                'Content-Type': undefined,
+                'X-Atlassian-Token': 'nocheck'
+            }
+        }).success(function (resp) {
+            onSuccess(resp);
+        }).error(function (resp) {
+            onError(resp);
+        });
+    },
+    _logOut = function (onSuccess, onError) {
+        $http.delete(_data['server'] + _configs.APIs.log_out).success(function (resp) {
+            onSuccess(resp);
+        });
+    };
+
+    return {
+        auth: _auth,
+        getCurUser: _getCurUser,
+        fetchAllAtlassianInfo: _fetchAllAtlassianInfo,
+        createIssue: _createIssue,
+        attachToIssue: _attachToIssue,
+        generateMetaData: _generateMetaData,
+        logOut: _logOut
+    };
 }]);
 
 app.factory('Drawer', ['CaptureAPIs', function (CaptureAPIs) {
@@ -198,6 +396,69 @@ app.factory('Drawer', ['CaptureAPIs', function (CaptureAPIs) {
         }
     };
 }]);
+
+/**
+ * directives
+ */
+
+app.directive('captureTextLayer', ['Drawer', '$timeout', function (Drawer, $timeout) {
+    return {
+        restrict: 'A',
+        link: function ($scope, $element, $attrs) {
+            $element.on('keypress', function (event) {
+                event.data = $scope.textlayerData;
+                Drawer.getTool('text').keypress(event);
+            });
+
+            $scope.$watch($attrs.captureFocus, function (value) {
+                if (value === true) {
+                    $scope[$attrs.captureFocus] = false;
+                    $timeout(function () {
+                        $element[0].focus();
+                    });
+                }
+            });
+        }
+    };
+}]);
+
+app.directive('captureCanvas', ['Drawer', function (Drawer) {
+    return {
+        restrict: 'A',
+        controller: 'DrawController',
+        link: function ($scope, $element, attr) {
+            $scope.canvas = Snap('#draw-canvas');
+
+            var _eventHanders = function (eventName, event) {
+                if (Drawer.getActiveTool() && typeof Drawer.getActiveTool()[eventName] !== 'undefined') {
+                    Drawer.getActiveTool()[eventName](event);
+                }
+            };
+
+            var _isDown = false;
+            $element.on('mousedown', function (event) {
+                _isDown = true;
+                _eventHanders('mousedown', event);
+            });
+
+            $element.on('mouseup', function (event) {
+                _isDown = false;
+                _eventHanders('mouseup', event);
+            });
+
+            $element.on('mousemove', function (event) {
+                if (!_isDown) {
+                    return;
+                }
+                _eventHanders('mousemove', event);
+            });
+        }
+    };
+}]);
+
+/**
+ * controllers
+ */
 
 app.controller('DrawController', ['$scope', 'Drawer', '$sce', function ($scope, Drawer, $sce) {
     $scope.canvas = Snap('#draw-canvas');
@@ -483,251 +744,6 @@ app.controller('DrawController', ['$scope', 'Drawer', '$sce', function ($scope, 
         Drawer.exportImage();
     };
 }]);
-
-
-app.directive('captureTextLayer', ['Drawer', '$timeout', function (Drawer, $timeout) {
-    return {
-        restrict: 'A',
-        link: function ($scope, $element, $attrs) {
-            $element.on('keypress', function (event) {
-                event.data = $scope.textlayerData;
-                Drawer.getTool('text').keypress(event);
-            });
-
-            $scope.$watch($attrs.captureFocus, function (value) {
-                if (value === true) {
-                    $scope[$attrs.captureFocus] = false;
-                    $timeout(function () {
-                        $element[0].focus();
-                    });
-                }
-            });
-        }
-    };
-}])
-
-app.directive('captureCanvas', ['Drawer', function (Drawer) {
-    return {
-        restrict: 'A',
-        controller: 'DrawController',
-        link: function ($scope, $element, attr) {
-            $scope.canvas = Snap('#draw-canvas');
-
-            var _eventHanders = function (eventName, event) {
-                if (Drawer.getActiveTool() && typeof Drawer.getActiveTool()[eventName] !== 'undefined') {
-                    Drawer.getActiveTool()[eventName](event);
-                }
-            };
-
-            var _isDown = false;
-            $element.on('mousedown', function (event) {
-                _isDown = true;
-                _eventHanders('mousedown', event);
-            });
-
-            $element.on('mouseup', function (event) {
-                _isDown = false;
-                _eventHanders('mouseup', event);
-            });
-
-            $element.on('mousemove', function (event) {
-                if (!_isDown) {
-                    return;
-                }
-                _eventHanders('mousemove', event);
-            });
-        }
-    };
-}]);
-
-app.factory('CaptureListener', ['CaptureAPIs', function (CaptureAPIs) {
-    var _canvas = Snap('#draw-canvas');
-
-    var _init = function () {
-        chrome.runtime.onMessage.addListener(_onMessage);
-    },
-    _actions = {
-        updateScreenshot: function (data) {
-            var image = new Image();
-            image.onload = function () {
-                _canvas.image(data, 0, 0, this.width, this.height);
-                _canvas.attr('width', this.width);
-                _canvas.attr('height', this.height);
-            };
-            image.src =data;
-            // var image = _canvas.image(data, 0, 0);
-            // console.log(image);
-        }
-    },
-    _onMessage = function (request, sender, sendResponse) {
-        console.log('[app] comming request > ', request, sender);
-        sendResponse('[app] received request!');
-
-        if (typeof request.type === 'undefined'
-            || typeof _actions[request.type] === 'undefined') {
-            return false;
-        }
-
-        _actions[request.type](request.data);
-    };
-
-    _init();
-
-    return {
-        actions: _actions
-    };
-}])
-
-app.factory('CaptureAPIs', ['$http', '$rootScope', '$filter', function($http, $rootScope, $filter){
-    var _configs = {
-        APIs: CaptureConfigs.get('APIs')
-    }, _data = {}, _reporterId = null;
-
-    var _setServer = function (server) {
-        _data['server'] = server;
-    },
-    _auth = function (server, username, password, onSuccess, onError) {
-        $http.post(server + _configs.APIs.auth, {
-            username: username,
-            password, password
-        }).success(function (data, status) {
-            console.log(data, status);
-
-            _reporterId = data.name;
-            _setServer(server);
-            typeof onSuccess !== 'undefined' &&  onSuccess(data, status);
-        }).error(function (data, status) {
-            console.log(data, status);
-            typeof onError !== 'undefined' && onError(data, status);
-        });
-    },
-    _getCurUser = function (server, onSuccess, onError) {
-        $http.get(server + _configs.APIs.auth).success(function (data, status) {
-            console.log(data, status);
-
-            _reporterId = data.name;
-            _setServer(server);
-            typeof onSuccess !== 'undefined' &&  onSuccess(data, status);
-        }).error(function (data, status) {
-            console.log(data, status);
-            typeof onError !== 'undefined' && onError(data, status);
-        });
-    },
-    _parseAPIData = function (data, type) {
-        if (type == 'issue_types') {
-            return data['projects'][0]['issuetypes'];
-        }
-        return data;
-    },
-    _fetchAllAtlassianInfo = function (callback) {
-        angular.forEach(_configs.APIs.info, function(value, key){
-            $http.get(_data['server'] + value).success(function (resp) {
-                // resp = _parseAPIData(resp, key);
-                console.log('set', key, resp);
-                callback(key, resp);
-            });
-        });
-    },
-    _generateMetaData = function (isIncludeEnv, callback) {
-        if (!isIncludeEnv) {
-            callback('');
-            return;
-        }
-
-        var URLs;
-        CaptureStorage.getData('source_url', function (results) {
-            URLs = results['source_url'];
-            var screenRes = screen.width + 'x' + screen.height,
-                userAgent = navigator.userAgent;
-
-            var data = "\n\n\n *Zalora Capture Environment Information* \n- URL: " + URLs + "\n- Screen Resolution: " + screenRes + "\n- User Agent: " + userAgent;
-            callback(data);
-        });
-    },
-    _createIssue = function (projectId, issueTypeId, priorityId, summary, description, isIncludeEnv, onSuccess, onError) {
-        _generateMetaData(isIncludeEnv, function (metaData) {
-            var data = {
-                fields: {
-                    summary: summary,
-                    description: description + metaData,
-                    priority: {
-                        id: priorityId
-                    },
-                    project: {
-                        id: projectId
-                    },
-                    issuetype: {
-                        id: issueTypeId
-                    }
-                }
-            };
-            // console.log(data); return;
-            $http.post(_data['server'] + _configs.APIs.create_issue, data).success(function (resp) {
-                onSuccess(resp);
-            }).error(function (resp) {
-                onError(resp);
-            });
-        });
-    },
-    _dataURLToBlob = function(dataURL) {
-        var BASE64_MARKER = ';base64,';
-        if (dataURL.indexOf(BASE64_MARKER) == -1) {
-            var parts = dataURL.split(',');
-            var contentType = parts[0].split(':')[1];
-            var raw = decodeURIComponent(parts[1]);
-
-            return new Blob([raw], {type: contentType});
-        }
-
-        var parts = dataURL.split(BASE64_MARKER);
-        var contentType = parts[0].split(':')[1];
-        var raw = window.atob(parts[1]);
-        var rawLength = raw.length;
-
-        var uInt8Array = new Uint8Array(rawLength);
-
-        for (var i = 0; i < rawLength; ++i) {
-            uInt8Array[i] = raw.charCodeAt(i);
-        }
-
-        return new Blob([uInt8Array], {type: contentType});
-    },
-    _attachToIssue = function (key, data, onSuccess, onError) {
-        var url = _data['server'] + _configs.APIs.attach_to_issue.replace('%s', key);
-
-        var fd = new FormData(),
-            fileName = 'Screen Shot ' + $filter('date')(Date.now(), "yyyy-MM-dd 'at' h:mma" + '.png');
-
-        fd.append('file', _dataURLToBlob(data), fileName);
-
-        $http.post(url, fd, {
-            transformRequest: angular.identity,
-            headers: {
-                'Content-Type': undefined,
-                'X-Atlassian-Token': 'nocheck'
-            }
-        }).success(function (resp) {
-            onSuccess(resp);
-        }).error(function (resp) {
-            onError(resp);
-        });
-    },
-    _logOut = function (onSuccess, onError) {
-        $http.delete(_data['server'] + _configs.APIs.log_out).success(function (resp) {
-            onSuccess(resp);
-        });
-    };
-
-    return {
-        auth: _auth,
-        getCurUser: _getCurUser,
-        fetchAllAtlassianInfo: _fetchAllAtlassianInfo,
-        createIssue: _createIssue,
-        attachToIssue: _attachToIssue,
-        generateMetaData: _generateMetaData,
-        logOut: _logOut
-    };
-}])
 
 app.controller('MainController', ['$scope', 'CaptureAPIs', 'CaptureListener', 'Drawer', function ($scope, CaptureAPIs, CaptureListener, Drawer) {
 
