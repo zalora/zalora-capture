@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html ng-app="CaptureApp" ng-csp>
+    <head>
+        <meta charset="UTF-8">
+        <title>Zalora Capture</title>
+        <link rel="stylesheet" type="text/css" href="../bower_components/bootstrap/dist/css/bootstrap.min.css">
+        <link rel="stylesheet" type="text/css" href="../bower_components/font-awesome/css/font-awesome.min.css">
+        <link rel="stylesheet" type="text/css" href="../bower_components/angularjs/angular-csp.css">
+        <link rel="stylesheet" type="text/css" href="css/app.css">
+    </head>
+    <body>
+        <div id="main">
+            <div id="canvas-wrapper" class="">
+                <div class="toolbar">
+                    <ul class="tools">
+                        <li ng-repeat="key in notSorted(tools)" ng-init="tool = tools[key]">
+                            <a href="#" ng-click="setActiveTool(tool.params.id)" ng-bind-html="$sce.trustAsHtml(tool.params.name)" ng-class="{active: activeTool.params.id == tool.params.id}"></a>
+                        </li>
+                        <li>
+                            <a></a>
+                        </li>
+                        <li>
+                            <a href="#" ng-click="clearItems()">
+                                <i class="fa fa-trash"></i>
+                                Clear
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" ng-click="exportImage()">
+                                <i class="fa fa-download"></i>
+                                Export
+                            </a>
+                        </li>
+                    </ul>
+                    <ul class="colors">
+                        <li ng-repeat="color in colors">
+                            <a href="#" ng-class="{active: activeColor == color}" ng-click="setActiveColor(color)" style="background: {{color}}"></a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="canvas-content">
+                    <svg id="draw-canvas" capture-canvas class="{{activeTool.params.id}}"></svg>
+                    <input type="text" ng-show="textLayer.isShow" ng-cloak name="text-layer" id="text-layer" style="color: {{activeColor}}; border-color: {{activeColor}}; top: {{textLayer.top - 26}}px; left: {{textLayer.left - 11}}px" ng-model="textlayerData" capture-text-layer capture-focus="textLayer.focus" ng-blur="textLayer.focus = false"/>
+                </div>
+            </div>
+            <div id="sidebar" class="" ng-controller="MainController">
+                <form id="create-new-issue" method="POST" role="form" ng-show="user && !loading" ng-cloak ng-submit="saveIssue()">
+                    <legend>Create new issue</legend>
+
+                    <div class="alert alert-success" role="alert" ng-show="newIssue" ng-cloak>
+                        <a target="__blank" href="{{server}}/browse/{{newIssue.key}}"> <i class="fa fa-bug"></i> <strong>{{newIssue.key}}</strong></a> created!
+                        <button ng-click="newIssue = false;" type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">×</span></button>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="project">Project <font color="red">*</font></label>
+                        <select name="project" id="project" class="form-control" required="required" ng-model="selected['projects']" ng-options="project.id as project.name for project in info['projects']">
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="type">Issue Type <font color="red">*</font></label>
+                        <select name="type" id="type" class="form-control" required="required" ng-model="selected['issue_types']" ng-options="type.id as type.name for type in info['issue_types']">
+                        </select>
+
+                    </div>
+
+                    <div class="form-group">
+                        <label for="priority">Priority <font color="red">*</font></label>
+                        <select name="priority" id="priority" class="form-control" required="required" ng-model="selected['priorities']" ng-options="priority.id as priority.name for priority in info['priorities']">
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="summary">Summary <font color="red">*</font></label>
+                        <textarea ng-model="summary" name="summary" id="summary" class="form-control" required="required" rows="4"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="description">Description <font color="red">*</font></label>
+                        <textarea ng-model="description" name="description" id="description" class="form-control" required="required" rows="10"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" value="" checked="checked" ng-model="includeEnv">
+                                Include environment data
+                            </label>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Create</button>
+
+                    <div class="pull-right">
+                        <a href="#" ng-click="logOut()" class="logout">Log out</a>
+                    </div>
+                </form>
+                <div class="save-issue-status" ng-show="loading" ng-cloak>
+                    <i class="fa fa-refresh fa-spin"></i>
+                    <span>{{loading}}</span>
+                </div>
+                <form method="POST" role="form" ng-show="!user" ng-cloak ng-submit="logIn()">
+                    <legend>Log in JIRA server</legend>
+
+                    <div class="alert alert-danger" role="alert" ng-show="showLoginFailBox">
+                        Log in failed! Please check your credentials!
+                    </div>
+
+                    <div class="form-group">
+                        <label for="server">Server URL <font color="red">*</font></label>
+                        <input type="text" class="form-control" id="server" name="server" placeholder="" required="required" ng-model="server">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="username">Username <font color="red">*</font></label>
+                        <input type="text" class="form-control" id="username" name="username" placeholder="" required="required" ng-model="username">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password">Password <font color="red">*</font></label>
+                        <input type="password" class="form-control" id="password" name="password" placeholder="" required="required" ng-model="password">
+                    </div>
+
+
+                    <button type="submit" class="btn btn-primary">Log in</button>
+                </form>
+            </div>
+        </div>
+
+        <!--<script src="../bower_components/jquery/dist/jqueyr.min.js"></script>-->
+        <script src="../bower_components/angularjs/angular.min.js"></script>
+        <script src="../bower_components/snap.svg/dist/snap.svg-min.js"></script>
+        <script src="../bower_components/async/lib/async.js"></script>
+        <script src="http://localhost:35729/livereload.js?snipver=1"></script>
+        <script src="js/CaptureStorage.js"></script>
+        <script src="js/CaptureApp.js"></script>
+    </body>
+</html>

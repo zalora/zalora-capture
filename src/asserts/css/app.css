@@ -1,0 +1,194 @@
+body {
+    background: #f5f6f7;
+    width: 100%;
+    height: 100%;
+}
+
+#main {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+}
+
+#sidebar {
+    padding: 15px;
+    background: #fff;
+    height: 100%;
+    overflow-x: scroll;
+    z-index: 8;
+    width: 400px;
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    box-shadow: -1px 0px 10px 0px rgba(0, 0, 0, 0.3);
+}
+
+#canvas-wrapper {
+    height: 100%;
+    position: relative;
+    padding-top: 70px;
+    padding-left:0;
+    padding-right: 0;
+    margin-right: 400px;
+}
+
+#draw-canvas,
+#canvas {
+    /*width: 100%;*/
+    /*height: 100%*/
+}
+
+#draw-canvas:active {
+    cursor: crosshair;
+}
+
+#draw-canvas {
+    cursor: crosshair;
+}
+
+#draw-canvas.text {
+    cursor: text;
+}
+
+#draw-canvas.move {
+    cursor: move;
+}
+
+#draw-canvas:focus {
+    outline: none;
+}
+
+.tools, .colors {
+    list-style: none;
+    display: inline-block;
+}
+
+.colors a {
+    width: 20px;
+    height: 20px;
+    position: relative;
+}
+
+.tools li,
+.tools li a,
+.colors li,
+.colors li a {
+    display: inline-block;
+}
+
+.colors li a.active:before {
+    content: 'x';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    text-align: center;
+    line-height: 20px;
+    color: #fff;
+    font-size: 16px;
+}
+
+.tools {
+    padding: 10px;
+    margin: 0;
+}
+
+.tools a {
+    padding: 5px 10px;
+    text-align: center;
+}
+
+.tools a .fa {
+    font-size: 24px;
+    display: block;
+    padding-bottom: 5px;
+}
+
+.tools a.active {
+    background: #fff;
+    border-radius: 2px;
+    color: #333;
+}
+
+.toolbar {
+    background: #272727;
+    margin-bottom: 10px;
+    color: #fff;
+    font-size: 12px;
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: auto;
+    width: 100%;
+    z-index: 7;
+    box-shadow: 0px 1px 10px 0px rgba(0, 0, 0, 0.3);
+}
+
+.toolbar a {
+    color: #d1d1d1;
+    text-transform: uppercase;
+    font-size: 9px;
+    text-shadow: none;
+}
+
+.toolbar a:hover,
+.toolbar a:focus,
+.toolbar a:active {
+    text-decoration: none;
+}
+
+.canvas-content {
+    width: 100%;
+    position: relative;
+    overflow: scroll;
+    height: 100%;
+}
+
+#text-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    border: none;
+    background: transparent;
+    height: 40px;
+    font-size: 16px;
+    font-weight: bold;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 5px 10px;
+    width: auto;
+}
+
+#text-layer:focus,
+#text-layer:active {
+    outline: none;
+}
+
+.save-issue-status {
+    width: 100%;
+    height: 100%;
+    text-align: center;
+    padding-top: 30%;
+}
+
+.save-issue-status .fa {
+    font-size: 64px;
+    display: block;
+    margin-bottom: 20px;
+    color: #999;
+}
+
+.save-issue-status span {
+    font-size: 16px;
+}
+
+.logout {
+    line-height: 34px;
+}
+
