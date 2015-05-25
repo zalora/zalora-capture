@@ -384,6 +384,12 @@ app.factory('Drawer', ['CaptureAPIs', function (CaptureAPIs) {
 
             _items = [];
         },
+        b64_to_utf8: function (str) {
+            return decodeURIComponent(escape(window.atob(str)));
+        },
+        utf8_to_b64: function (str) {
+            return window.btoa(unescape(encodeURIComponent(str)));
+        },
         exportImage: function (callback) {
             var svg = document.querySelector("svg"),
                 svgData = new XMLSerializer().serializeToString(svg),
@@ -396,7 +402,8 @@ app.factory('Drawer', ['CaptureAPIs', function (CaptureAPIs) {
 
             var img = document.createElement( "img" );
 
-            var data = btoa(svgData);
+            var data = this.utf8_to_b64(svgData);
+            // var data = btoa(svgData); using in function for only a-zA-Z0-9 character
             img.setAttribute("src", "data:image/svg+xml;base64," + data);
 
             img.onload = function() {
