@@ -474,9 +474,12 @@ app.directive('captureCanvas', ['Drawer', function (Drawer) {
             _convertCoords = function (event) {
                 event.vX = event.offsetX,
                 event.vY = event.offsetY;
-                if (event.target.nodeName == 'tspan') {
-                    event.vX += event.target.offsetLeft;
-                    event.vY += event.target.offsetTop;
+                if (event.target.nodeName == 'text') {
+                    event.vX = event.offsetX + event.target.offsetLeft;
+                    event.vY = event.offsetY + event.target.offsetTop;
+                } else if (event.target.nodeName == 'tspan') {
+                    event.vX = event.offsetX + event.target.offsetLeft;
+                    event.vY = event.target.offsetTop;
                 }
 
                 return event;
@@ -501,12 +504,11 @@ app.directive('captureCanvas', ['Drawer', function (Drawer) {
                 if (!_isDown) {
                     return;
                 }
-
                 event = _convertCoords(event);
-                // console.log(event.vX, event.vY, event.target.nodeName, event.target.snap, event);
                 // return;
 
                 _eventHanders('mousemove', event);
+                // console.log(event.vX, event.vY, event.target.nodeName, event);
             });
         }
     };
@@ -729,7 +731,7 @@ app.controller('DrawController', ['$scope', 'Drawer', '$sce', function ($scope, 
                     if ($scope.textlayerData.trim() == '') {
                         item.remove();
                     } else {
-                        var text = $scope.textlayerData.replace(/<\/div>/g, '').replace(/<div>/g, "<br>");
+                        var text = $scope.textlayerData.replace(/<\/div>/g, '').replace(/<div>/g, "<br>").replace(/&nbsp;/g, ' ');
 
                         text = text.split("<br>");
                         item.attr('text', text);
