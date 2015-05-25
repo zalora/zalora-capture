@@ -16,7 +16,7 @@ to install all dependencies.
 
 - Go to `chrome://extensions`
 - Choose `Load unpacked extension`
-- Locate to the resposity directory.
+- Locate to the repository directory.
 
 # Use
 
