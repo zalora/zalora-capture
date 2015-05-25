@@ -280,12 +280,12 @@ app.factory('Drawer', ['CaptureAPIs', function (CaptureAPIs) {
         }
 
         _currentItem.coords.start = {
-            x: event.offsetX,
-            y: event.offsetY
+            x: event.vX,
+            y: event.vY
         };
         _currentItem.coords.end = {
-            x: event.offsetX,
-            y: event.offsetY
+            x: event.vX,
+            y: event.vY
         };
 
         if (typeof this.params.events.mousedown !== 'undefined') {
@@ -317,8 +317,8 @@ app.factory('Drawer', ['CaptureAPIs', function (CaptureAPIs) {
         }
 
         _currentItem.coords.end = {
-            x: event.offsetX,
-            y: event.offsetY
+            x: event.vX,
+            y: event.vY
         };
 
         if (typeof this.params.events.mousemove !== 'undefined') {
@@ -470,16 +470,30 @@ app.directive('captureCanvas', ['Drawer', function (Drawer) {
                 if (Drawer.getActiveTool() && typeof Drawer.getActiveTool()[eventName] !== 'undefined') {
                     Drawer.getActiveTool()[eventName](event);
                 }
+            },
+            _convertCoords = function (event) {
+                event.vX = event.offsetX,
+                event.vY = event.offsetY;
+                if (event.target.nodeName == 'tspan') {
+                    event.vX += event.target.offsetLeft;
+                    event.vY += event.target.offsetTop;
+                }
+
+                return event;
             };
 
             var _isDown = false;
             $element.on('mousedown', function (event) {
                 _isDown = true;
+
+                event = _convertCoords(event);
                 _eventHanders('mousedown', event);
             });
 
             $element.on('mouseup', function (event) {
                 _isDown = false;
+
+                event = _convertCoords(event);
                 _eventHanders('mouseup', event);
             });
 
@@ -487,6 +501,11 @@ app.directive('captureCanvas', ['Drawer', function (Drawer) {
                 if (!_isDown) {
                     return;
                 }
+
+                event = _convertCoords(event);
+                // console.log(event.vX, event.vY, event.target.nodeName, event.target.snap, event);
+                // return;
+
                 _eventHanders('mousemove', event);
             });
         }
@@ -512,7 +531,7 @@ app.controller('DrawController', ['$scope', 'Drawer', '$sce', function ($scope, 
         id: 'rect',
         name: '<i class="fa fa-square-o"></i> Rectangle',
         createNode: function (event) {
-            return $scope.canvas.rect(event.offsetX, event.offsetY, 0, 0);
+            return $scope.canvas.rect(event.vX, event.vY, 0, 0);
         },
         events: {
             mousedown: function (event, item) {
@@ -544,7 +563,7 @@ app.controller('DrawController', ['$scope', 'Drawer', '$sce', function ($scope, 
         id: 'ellipse',
         name: '<i class="fa fa-circle-thin"></i> Ellipse',
         createNode: function (event) {
-            return $scope.canvas.ellipse(event.offsetX, event.offsetY, 0, 0);
+            return $scope.canvas.ellipse(event.vX, event.vY, 0, 0);
         },
         events: {
             mousedown: function (event, item) {
@@ -578,7 +597,7 @@ app.controller('DrawController', ['$scope', 'Drawer', '$sce', function ($scope, 
         id: 'line',
         name: '<i class="fa fa-minus"></i> Line',
         createNode: function (event) {
-            return $scope.canvas.line(event.offsetX, event.offsetY, 0, 0);
+            return $scope.canvas.line(event.vX, event.vY, 0, 0);
         },
         events: {
             mousedown: function (event, item) {
@@ -610,7 +629,7 @@ app.controller('DrawController', ['$scope', 'Drawer', '$sce', function ($scope, 
                 }),
                 marker = p1.marker(0, 0, 6, 6, 3, 3);
 
-            var arrow = $scope.canvas.path(Snap.format('M{x},{y}', {x: event.offsetX, y: event.offsetY}));
+            var arrow = $scope.canvas.path(Snap.format('M{x},{y}', {x: event.vX, y: event.vY}));
             arrow.attr('marker-end', marker);
 
             return arrow;
@@ -642,9 +661,9 @@ app.controller('DrawController', ['$scope', 'Drawer', '$sce', function ($scope, 
         id: 'draw',
         name: '<i class="fa fa-paint-brush"></i> Draw',
         createNode: function (event) {
-            var item = $scope.canvas.path(Snap.format('M{x},{y}', {x: event.offsetX, y: event.offsetY}));
+            var item = $scope.canvas.path(Snap.format('M{x},{y}', {x: event.vX, y: event.vY}));
 
-            item.points = [[event.offsetX, event.offsetY]];
+            item.points = [[event.vX, event.vY]];
 
             return item;
         },
@@ -656,12 +675,12 @@ app.controller('DrawController', ['$scope', 'Drawer', '$sce', function ($scope, 
                 if (item.points.length > 1) {
                     var lastPoint = item.points[item.points
                         .length - 1],
-                        dist = Math.sqrt(Math.pow(event.offsetX - lastPoint[0], 2) + Math.pow(event.offsetY - lastPoint[1], 2));
+                        dist = Math.sqrt(Math.pow(event.vX - lastPoint[0], 2) + Math.pow(event.vY - lastPoint[1], 2));
                     if (dist > 5) {
-                        item.points.push([event.offsetX, event.offsetY]);
+                        item.points.push([event.vX, event.vY]);
                     }
                 } else {
-                    item.points.push([event.offsetX, event.offsetY]);
+                    item.points.push([event.vX, event.vY]);
                 }
             },
             mouseup: function (event, item) {
@@ -687,14 +706,14 @@ app.controller('DrawController', ['$scope', 'Drawer', '$sce', function ($scope, 
             console.log('init text', event);
             $scope.$apply(function () {
                 $scope.textLayer.isShow = true;
-                $scope.textLayer.top = event.offsetY;
-                $scope.textLayer.left = event.offsetX;
+                $scope.textLayer.top = event.vY;
+                $scope.textLayer.left = event.vX;
                 $scope.textLayer.focus = true;
             });
 
             event.dontSetDefaultAttrs = true;
 
-            var item = $scope.canvas.text(event.offsetX, event.offsetY, '');
+            var item = $scope.canvas.text(event.vX, event.vY, '');
             item.attr('stoke', 'transparent');
             item.attr('stroke-width', 0);
             item.attr('font-weight', 'bold');
@@ -736,13 +755,13 @@ app.controller('DrawController', ['$scope', 'Drawer', '$sce', function ($scope, 
             },
             mouseup: function (event, item) {
                 $scope.$apply(function () {
-                    $scope.textLayer.top = event.offsetY;
-                    $scope.textLayer.left = event.offsetX;
+                    $scope.textLayer.top = event.vY;
+                    $scope.textLayer.left = event.vX;
                     $scope.textLayer.focus = true;
                     $scope.textLayerData = '';
 
-                    item.attr('x', event.offsetX);
-                    item.attr('y', event.offsetY);
+                    item.attr('x', event.vX);
+                    item.attr('y', event.vY);
                 });
 
                 event.dontSetItemNull = true;

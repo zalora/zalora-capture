@@ -35,10 +35,9 @@ body {
     margin-right: 300px;
 }
 
-#draw-canvas,
-#canvas {
-    /*width: 100%;*/
-    /*height: 100%*/
+#draw-canvas text{
+    user-select: none;
+    -webkit-user-select: none;
 }
 
 #draw-canvas:active {
