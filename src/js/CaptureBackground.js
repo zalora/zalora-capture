@@ -6,7 +6,7 @@
 
 "use strict";
 
-var CaptureBackground = (function () {
+var CaptureBackground = (function (CaptureConfigs, CaptureStorage, rpfUtils) {
     var _configs = {
         app_url: CaptureConfigs.get('app', 'url')
     },
@@ -18,7 +18,7 @@ var CaptureBackground = (function () {
 
     var _init = function () {
         chrome.runtime.onMessage.addListener(_onMessage);
-        chrome.browserAction.onClicked.addListener(_start);
+        // chrome.browserAction.onClicked.addListener(_start);
     },
     _onMessage = function (request, sender, sendResponse) {
         console.log('[background] comming request > ', request, sender);
@@ -34,6 +34,18 @@ var CaptureBackground = (function () {
     _actions = {
         getScreenshot: function (data) {
             return _screenshot;
+        },
+        getUserActions: function (data) {
+            return rpfUtils.getInstance().getScreenshotManager().getGeneratedCmds();
+        },
+        startRecording: function (data) {
+            rpfUtils.getInstance().startRecording(data.tabId, data.windowId);
+        },
+        stopRecording: function (data) {
+            rpfUtils.getInstance().stopRecording();
+        },
+        reportBug: function (data) {
+            _start();
         }
     },
     _start = function () {
@@ -96,8 +108,9 @@ var CaptureBackground = (function () {
     };
 
     return {
-        init: _init
+        init: _init,
+        start: _start
     };
-})();
+})(CaptureConfigs, CaptureStorage, rpf.Utils);
 
 CaptureBackground.init();

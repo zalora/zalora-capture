@@ -21,7 +21,7 @@ app.config(['$httpProvider', function ($httpProvider) {
  * services
  */
 
-app.factory('CaptureListener', ['CaptureAPIs', function (CaptureAPIs) {
+app.factory('CaptureListener', ['JiraAPIs', function (JiraAPIs) {
     var _canvas = Snap('#draw-canvas');
 
     var _init = function () {
@@ -59,7 +59,19 @@ app.factory('CaptureListener', ['CaptureAPIs', function (CaptureAPIs) {
     };
 }]);
 
-app.factory('CaptureAPIs', ['$http', '$rootScope', '$filter', function($http, $rootScope, $filter){
+app.factory('CaptureSender', [function () {
+    var _send = function (command, data, callback) {
+        chrome.runtime.sendMessage({type: command, data: data}, function (resp) {
+            callback(resp);
+        });
+    };
+
+    return {
+        send: _send
+    };
+}])
+
+app.factory('JiraAPIs', ['$http', '$rootScope', '$filter', function($http, $rootScope, $filter){
     var _configs = {
         APIs: CaptureConfigs.get('APIs')
     }, _data = {}, _reporterId = null;
@@ -210,7 +222,7 @@ app.factory('CaptureAPIs', ['$http', '$rootScope', '$filter', function($http, $r
     };
 }]);
 
-app.factory('Drawer', ['CaptureAPIs', function (CaptureAPIs) {
+app.factory('Drawer', ['JiraAPIs', function (JiraAPIs) {
     var _tools = {},
         _activeTool = null,
         _items = [],
@@ -831,7 +843,7 @@ app.controller('DrawController', ['$scope', 'Drawer', '$sce', function ($scope, 
     };
 }]);
 
-app.controller('MainController', ['$scope', 'CaptureAPIs', 'CaptureListener', 'Drawer', function ($scope, CaptureAPIs, CaptureListener, Drawer) {
+app.controller('MainController', ['$scope', 'JiraAPIs', 'CaptureListener', 'Drawer', 'CaptureSender', function ($scope, JiraAPIs, CaptureListener, Drawer, CaptureSender) {
 
     // init
     $scope.showCreateIssueBox = false;
@@ -849,10 +861,10 @@ app.controller('MainController', ['$scope', 'CaptureAPIs', 'CaptureListener', 'D
 
                 // check login
                 if (key == 'server') {
-                    CaptureAPIs.getCurUser($scope.server, function (resp) {
+                    JiraAPIs.getCurUser($scope.server, function (resp) {
                         $scope.user = resp
 
-                        CaptureAPIs.fetchAllAtlassianInfo(function (key, data) {
+                        JiraAPIs.fetchAllAtlassianInfo(function (key, data) {
                             $scope.info[key] = data;
 
                             if (data.length) {
@@ -867,10 +879,14 @@ app.controller('MainController', ['$scope', 'CaptureAPIs', 'CaptureListener', 'D
 
     // on ready
     angular.element(document).ready(function () {
-        chrome.runtime.sendMessage({type: 'getScreenshot', data: null}, function (resp) {
+        CaptureSender.send('getScreenshot', null, function (resp) {
             if (resp) {
                 CaptureListener.actions.updateScreenshot(resp);
             }
+        });
+
+        CaptureSender.send('getUserActions', null, function (resp) {
+            $scope.actions = resp.join('\n');
         });
     });
 
@@ -884,10 +900,10 @@ app.controller('MainController', ['$scope', 'CaptureAPIs', 'CaptureListener', 'D
         });
 
         $scope.loading = 'Logging in..';
-        CaptureAPIs.auth($scope.server, $scope.username, $scope.password, function (resp, status) {
+        JiraAPIs.auth($scope.server, $scope.username, $scope.password, function (resp, status) {
             $scope.loading = false;
             $scope.user = resp;
-            CaptureAPIs.fetchAllAtlassianInfo(function (key, data) {
+            JiraAPIs.fetchAllAtlassianInfo(function (key, data) {
                 $scope.info[key] = data;
                 if (data.length) {
                     $scope.selected[key] = data[0].id;
@@ -904,7 +920,7 @@ app.controller('MainController', ['$scope', 'CaptureAPIs', 'CaptureListener', 'D
 
         async.series([function (callback) {
             // return callback(null, 'DP-6');
-            CaptureAPIs.createIssue($scope.selected['projects'], $scope.selected['issue_types'], $scope.selected['priorities'], $scope.summary, $scope.description, $scope.includeEnv, function (resp) {
+            JiraAPIs.createIssue($scope.selected['projects'], $scope.selected['issue_types'], $scope.selected['priorities'], $scope.summary, $scope.description, $scope.includeEnv, function (resp) {
 
                 // TODO: display success message
                 $scope.newIssue = resp;
@@ -923,7 +939,7 @@ app.controller('MainController', ['$scope', 'CaptureAPIs', 'CaptureListener', 'D
 
             $scope.loading = 'Uploading attachments..';
 
-            CaptureAPIs.attachToIssue(results[0], results[1], function (resp) {
+            JiraAPIs.attachToIssue(results[0], results[1], function (resp) {
                 $scope.loading = false;
                 $scope.summary = '';
                 $scope.description = '';
@@ -939,7 +955,7 @@ app.controller('MainController', ['$scope', 'CaptureAPIs', 'CaptureListener', 'D
 
     $scope.logOut = function () {
         $scope.loading = 'Logging out..';
-        CaptureAPIs.logOut(function (resp) {
+        JiraAPIs.logOut(function (resp) {
             $scope.user = null;
             $scope.loading = false;
             $scope.password = '';

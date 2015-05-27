@@ -1,6 +1,6 @@
 {
   "name": "Zalora Capture",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "manifest_version": 2,
   "description": "Reporting bugs from Chrome Browser",
   "homepage_url": "http://zalora.vn",
@@ -14,13 +14,21 @@
   },
   "browser_action": {
     "default_icon": "src/images/icons/icon19.png",
-    "default_title": "Zalora Capture"
+    "default_title": "Zalora Capture",
+    "default_popup": "src/popup.html"
   },
+  "content_scripts": [
+    {
+      "js": [ "src/js/lib/rpf_content_script.js" ],
+      "matches": [ "*://*/*" ],
+      "all_frames": true
+    }
+  ],
   "permissions": [
     "storage",
     "tabs",
     "notifications",
     "<all_urls>"
   ],
-  "content_security_policy": "script-src 'self' http://localhost:35729; object-src 'self'"
+  "content_security_policy": "script-src 'self' 'unsafe-eval' http://localhost:35729 https://d1n0x3qji82z53.cloudfront.net; object-src 'self'"
 }
