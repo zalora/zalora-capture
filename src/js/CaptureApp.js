@@ -3,11 +3,9 @@
  * @author VinhLH
  */
 
-
 "use strict";
 
 var app = angular.module('CaptureApp', []);
-
 
 /**
  * configs

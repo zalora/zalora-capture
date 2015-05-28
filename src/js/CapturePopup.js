@@ -1,3 +1,11 @@
+/**
+ * CapturePopup
+ *
+ * @author VinhLH
+ */
+
+"use strict";
+
 var CapturePopup = (function (CaptureStorage) {
     var _el = {};
 
@@ -75,7 +83,7 @@ var CapturePopup = (function (CaptureStorage) {
 
         _el.stop.style.display = "none";
         _el.start.style.display = "block";
-    };
+    },
     _reportBug = function () {
         chrome.runtime.sendMessage({
             type: 'reportBug'

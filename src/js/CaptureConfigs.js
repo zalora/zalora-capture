@@ -1,3 +1,11 @@
+/**
+ * CaptureConfigs
+ *
+ * @author VinhLH
+ */
+
+"use strict";
+
 var CaptureConfigs = (function () {
     var _configs = {
         canvas: {

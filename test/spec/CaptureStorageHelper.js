@@ -14,7 +14,6 @@ describe('Capture Storage Test', function () {
     });
 
     it('test save and get data', function (done) {
-        expect(true).toBe(true);
         expect(result.a).toBe(6);
         done();
     });

@@ -1,5 +1,6 @@
 /**
- * Storage Module
+ * CaptureStorage
+ *
  * @author VinhLH
  */
 

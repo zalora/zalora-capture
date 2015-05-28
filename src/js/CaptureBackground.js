@@ -1,8 +1,8 @@
 /**
- * Zalora Capture Background
+ * CaptureBackground
+ *
  * @author VinhLH
  */
-
 
 "use strict";
 
