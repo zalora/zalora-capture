@@ -39,13 +39,28 @@ var CaptureBackground = (function (CaptureConfigs, CaptureStorage, rpfUtils) {
             return rpfUtils.getInstance().getScreenshotManager().getGeneratedCmds();
         },
         startRecording: function (data) {
-            rpfUtils.getInstance().startRecording(data.tabId, data.windowId);
+            try {
+                rpfUtils.getInstance().startRecording(data.tabId, data.windowId);
+                return true;
+            } catch (e) {
+                console.log(e);
+                return false;
+            }
         },
         stopRecording: function (data) {
             rpfUtils.getInstance().stopRecording();
         },
+        getRecordingData: function (data) {
+            return rpfUtils.getInstance().getRecordingData();
+        },
         reportBug: function (data) {
             _start();
+        },
+        setRecordingTab: function (data) {
+            return rpfUtils.getInstance().setRecordingTab(data.id, data.windowId);
+        },
+        isRecording: function () {
+            return rpfUtils.getInstance().isRecording();
         }
     },
     _start = function () {

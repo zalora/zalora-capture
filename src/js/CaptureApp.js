@@ -21,11 +21,13 @@ app.config(['$httpProvider', function ($httpProvider) {
  * services
  */
 
-app.factory('CaptureListener', ['JiraAPIs', function (JiraAPIs) {
+app.factory('CaptureListener', ['JiraAPIs', 'CaptureSender', '$rootScope', function (JiraAPIs, CaptureSender, $rootScope) {
     var _canvas = Snap('#draw-canvas');
 
     var _init = function () {
         chrome.runtime.onMessage.addListener(_onMessage);
+
+        $rootScope.actions = '';
     },
     _actions = {
         updateScreenshot: function (data) {
@@ -35,9 +37,15 @@ app.factory('CaptureListener', ['JiraAPIs', function (JiraAPIs) {
                 _canvas.attr('width', this.width);
                 _canvas.attr('height', this.height);
             };
-            image.src =data;
-            // var image = _canvas.image(data, 0, 0);
-            // console.log(image);
+            image.src = data;
+
+            CaptureSender.send('getUserActions', null, function (resp) {
+                console.log('getUserActions', resp);
+                $rootScope.$apply(function () {
+                    console.log('current actions', $rootScope.actions);
+                    $rootScope.actions = resp.join('\n');
+                });
+            });
         }
     },
     _onMessage = function (request, sender, sendResponse) {
@@ -185,13 +193,15 @@ app.factory('JiraAPIs', ['$http', '$rootScope', '$filter', function($http, $root
 
         return new Blob([uInt8Array], {type: contentType});
     },
-    _attachToIssue = function (key, data, onSuccess, onError) {
+    _attachToIssue = function (key, data, fileName, onSuccess, onError) {
         var url = _data['server'] + _configs.APIs.attach_to_issue.replace('%s', key);
 
         var fd = new FormData(),
-            fileName = 'Screen Shot ' + $filter('date')(Date.now(), "yyyy-MM-dd 'at' h:mma" + '.png');
+            fileName = fileName.replace('%s', $filter('date')(Date.now(), "yyyy-MM-dd 'at' h:mma"));
 
-        fd.append('file', _dataURLToBlob(data), fileName);
+        fd.append('file', data, fileName);
+
+        console.log(fileName);
 
         $http.post(url, fd, {
             transformRequest: angular.identity,
@@ -200,10 +210,19 @@ app.factory('JiraAPIs', ['$http', '$rootScope', '$filter', function($http, $root
                 'X-Atlassian-Token': 'nocheck'
             }
         }).success(function (resp) {
-            onSuccess(resp);
+            typeof onSuccess !== 'undefined' && onSuccess(resp);
         }).error(function (resp) {
-            onError(resp);
+            typeof onError !== 'undefined' && onError(resp);
         });
+    },
+    _attachScreenshotToIssue = function (key, data, onSuccess, onError) {
+        _attachToIssue(key, _dataURLToBlob(data), 'Screen Shot %s.png', onSuccess, onError);
+    },
+    _attachRecordingData = function (key, data, onSuccess, onError) {
+        var data = new Blob([JSON.stringify(data)], {
+            type: 'application/json'
+        });
+        _attachToIssue(key, data, 'Recording Data %s.json', onSuccess, onError);
     },
     _logOut = function (onSuccess, onError) {
         $http.delete(_data['server'] + _configs.APIs.log_out).success(function (resp) {
@@ -216,7 +235,8 @@ app.factory('JiraAPIs', ['$http', '$rootScope', '$filter', function($http, $root
         getCurUser: _getCurUser,
         fetchAllAtlassianInfo: _fetchAllAtlassianInfo,
         createIssue: _createIssue,
-        attachToIssue: _attachToIssue,
+        attachScreenshotToIssue: _attachScreenshotToIssue,
+        attachRecordingData: _attachRecordingData,
         generateMetaData: _generateMetaData,
         logOut: _logOut
     };
@@ -843,7 +863,7 @@ app.controller('DrawController', ['$scope', 'Drawer', '$sce', function ($scope, 
     };
 }]);
 
-app.controller('MainController', ['$scope', 'JiraAPIs', 'CaptureListener', 'Drawer', 'CaptureSender', function ($scope, JiraAPIs, CaptureListener, Drawer, CaptureSender) {
+app.controller('MainController', ['$scope', 'JiraAPIs', 'CaptureListener', 'Drawer', 'CaptureSender', '$rootScope', function ($scope, JiraAPIs, CaptureListener, Drawer, CaptureSender, $rootScope) {
 
     // init
     $scope.showCreateIssueBox = false;
@@ -884,10 +904,6 @@ app.controller('MainController', ['$scope', 'JiraAPIs', 'CaptureListener', 'Draw
                 CaptureListener.actions.updateScreenshot(resp);
             }
         });
-
-        CaptureSender.send('getUserActions', null, function (resp) {
-            $scope.actions = resp.join('\n');
-        });
     });
 
     $scope.logIn = function () {
@@ -918,37 +934,80 @@ app.controller('MainController', ['$scope', 'JiraAPIs', 'CaptureListener', 'Draw
     $scope.saveIssue = function () {
         $scope.loading = 'Creating issue..';
 
-        async.series([function (callback) {
-            // return callback(null, 'DP-6');
-            JiraAPIs.createIssue($scope.selected['projects'], $scope.selected['issue_types'], $scope.selected['priorities'], $scope.summary, $scope.description, $scope.includeEnv, function (resp) {
+        async.parallel({
+            issueId: function (callback) {
+                // return callback(null, 'DP-6');
+                JiraAPIs.createIssue($scope.selected['projects'], $scope.selected['issue_types'], $scope.selected['priorities'], $scope.summary, $scope.description, $scope.includeEnv, function (resp) {
 
-                // TODO: display success message
-                $scope.newIssue = resp;
+                    // TODO: display success message
+                    $scope.newIssue = resp;
 
-                callback(null, resp.id);
-            }, function (resp) {
-                callback(null, null);
-            });
+                    callback(null, resp.id);
+                }, function (resp) {
+                    callback(null, null);
+                });
 
-        }, function (callback) {
-            Drawer.exportImage(function (url) {
-                callback(null, url);
-            });
-        }], function (err, results) {
+            },
+            screenshot: function (callback) {
+                Drawer.exportImage(function (url) {
+                    callback(null, url);
+                });
+            }
+        }, function (err, results) {
             // TODO: check error status
+            async.series({
+                issueId: function (callback) { // attach screenshot
+                    $scope.loading = 'Uploading attachments..';
 
-            $scope.loading = 'Uploading attachments..';
+                    JiraAPIs.attachScreenshotToIssue(results.issueId, results.screenshot, function (resp) {
+                        $scope.summary = '';
+                        $scope.description = '';
+                        callback(null, results.issueId);
+                    }, function (resp) {
+                        // TODO: display error message
+                        $scope.summary = '';
+                        $scope.description = '';
+                        callback(null, results.issueId);
+                    });
+                },
+                startUrl: function (callback) {
+                    CaptureStorage.getData('recoding_start_url', function (resp) {
+                        callback(null, resp['recoding_start_url']);
+                    });
+                },
+                recordingData: function (callback) { // fetch recording data
+                    var scripts = $scope.actions.split('\n');
 
-            JiraAPIs.attachToIssue(results[0], results[1], function (resp) {
-                $scope.loading = false;
-                $scope.summary = '';
-                $scope.description = '';
-            }, function (resp) {
-                // TODO: display error message
+                    CaptureSender.send('getRecordingData', null, function (resp) {
+                        _removeInfoMapRedundant(resp.infoMap, $scope.actions, resp.screenshots);
+                        console.log(resp.infoMap, scripts, resp.screenshots);
 
-                $scope.loading = false;
-                $scope.summary = '';
-                $scope.description = '';
+                        if (resp.infoMap) {
+                            callback(null, {
+                                script: scripts,
+                                infoMap: resp.infoMap,
+                                screenshots: resp.screenshots,
+                            });
+                        } else {
+                            callback(null, null);
+                        }
+                    });
+                }
+            }, function (err, results) { // attach recording data
+                if (!results.recordingData) {
+                    $scope.loading = false;
+                    $scope.actions = '';
+                } else {
+                    $scope.loading = 'Uploading user actions data..';
+                    results.recordingData['startUrl'] = results.startUrl;
+
+                    JiraAPIs.attachRecordingData(results.issueId, results.recordingData, function (resp) {
+                        $scope.loading = false;
+                        $scope.actions = '';
+                    }, function (resp) {
+                        // TODO: handle errors
+                    });
+                }
             });
         });
     };
@@ -963,4 +1022,25 @@ app.controller('MainController', ['$scope', 'JiraAPIs', 'CaptureListener', 'Draw
     };
 
     $scope.includeEnv = true;
+
+    // save recording data
+    var _removeInfoMapRedundant = function(
+    infoMap, script, screenshots) {
+        if (!infoMap || !infoMap['steps'] || !infoMap['elems']) {
+            return;
+        }
+        var steps = infoMap['steps'];
+        for (var stepId in steps) {
+            if (script.indexOf(stepId) == -1) {
+                var elemId = steps[stepId]['elemId'];
+                if (infoMap['elems'][elemId]) {
+                    delete infoMap['elems'][elemId];
+                }
+                if (screenshots[stepId]) {
+                    delete screenshots[stepId];
+                }
+                delete steps[stepId];
+            }
+        }
+    };
 }]);
