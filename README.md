@@ -12,11 +12,14 @@ $ bower install
 ``` 
 to install all dependencies.
 
+Note: Feature "Record and Playback" of this project is based on BiTE project.
+Two dependency files is generated from this repository https://github.com/vinhlh/bite-project.
+
 ### Install the extension
 
 - Go to `chrome://extensions`
 - Choose `Load unpacked extension`
-- Locate to the repository directory.
+- Locate to the repository directory
 
 # Use
 
