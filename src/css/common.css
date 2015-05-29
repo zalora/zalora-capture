@@ -23,6 +23,11 @@
     font-size: 14px;
 }
 
+.loading-text {
+    margin-bottom: 10px;
+    display: block;
+}
+
 [ng\:cloak], [ng-cloak], [data-ng-cloak], [x-ng-cloak], .ng-cloak, .x-ng-cloak {
   display: none !important;
 }
