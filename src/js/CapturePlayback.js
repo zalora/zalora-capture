@@ -6,9 +6,9 @@
 
 "use strict";
 
-var app = angular.module('CapturePlayback', ['Jira', 'ngPrism']);
+var playback = angular.module('CapturePlayback', ['Jira', 'ngPrism']);
 
-app.controller('MainController', ['$scope', 'JiraAPIs', function ($scope, JiraAPIs) {
+playback.controller('MainController', ['$scope', 'JiraAPIs', function ($scope, JiraAPIs) {
     $scope.projects = null;
     $scope.issues = null;
     $scope.scripts = null;
@@ -37,8 +37,8 @@ app.controller('MainController', ['$scope', 'JiraAPIs', function ($scope, JiraAP
             $scope.loading = null;
 
             if ($scope.issues.length) {
-                $scope.selected['issue'] = '10130';
-                // $scope.selected['issue'] = $scope.issues[0].id;
+                // $scope.selected['issue'] = '10130';
+                $scope.selected['issue'] = $scope.issues[0].id;
                 $scope.getScripts();
             }
         });
