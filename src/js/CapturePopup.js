@@ -139,6 +139,13 @@ popup.controller('MainController', ['$scope', 'JiraAPIs', function ($scope, Jira
         });
     };
 
+    $scope.$watch('isRecording', function (val) {
+        var icons = CaptureConfigs.get('icons');
+        chrome.browserAction.setIcon({
+            path: (val ? icons.recording : icons.default)
+        });
+    });
+
     _init();
 }]);
 

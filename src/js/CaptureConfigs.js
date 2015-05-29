@@ -24,7 +24,7 @@ var CaptureConfigs = (function () {
             get_attachment: '/rest/api/2/issue/{issueId}?fields=attachment',
             create_issue: '/rest/api/2/issue',
             attach_to_issue: '/rest/api/2/issue/{issueId}/attachments',
-            log_out: '/rest/auth/latest/session'
+            log_out: '/rest/auth/latest/session',
         },
         app: {
             url: 'src/app.html'
@@ -39,6 +39,14 @@ var CaptureConfigs = (function () {
             top: 5,
             width: 500,
             height: 800
+        },
+        icons: {
+            default: {
+                "19": "images/icons/icon19.png"
+            },
+            recording: {
+                "19": "images/icons/recording-icon19.png"
+            }
         }
     };
 
