@@ -6,64 +6,105 @@
 
 "use strict";
 
-var CapturePopup = (function (CaptureStorage) {
-    var _el = {};
+var popup = angular.module('CapturePopup', ['Jira']);
 
+popup.controller('MainController', ['$scope', 'JiraAPIs', function ($scope, JiraAPIs) {
     var _init = function () {
-        _el = {
-            start: document.getElementById('start-record'),
-            stop: document.getElementById('stop-record'),
-            report: document.getElementById('report-bug'),
-            alert: document.getElementById('alert')
-        };
+        $scope.user = null;
+        $scope.info = {};
+        $scope.selected = {};
+        $scope.loading = 'Checking your session..';
 
-        _el.start.addEventListener('click', function () {
-            _setRecordingTab();
+        // parse login info if available
+        CaptureStorage.getData(['server', 'username'], function (results) {
+            if (results) {
+                angular.forEach(results, function(value, key){
+                    $scope[key] = value;
+
+                    // check login
+                    if (key == 'server') {
+                        JiraAPIs.getCurUser($scope.server, function (resp) {
+                            $scope.user = resp;
+                            $scope.loading = null;
+
+                            JiraAPIs.fetchAllAtlassianInfo(function (key, data) {
+                                $scope.info[key] = data;
+
+                                if (data.length) {
+                                    $scope.selected[key] = data[0].id;
+                                }
+                            });
+                        });
+                    }
+                });
+            }
         });
 
-        _el.stop.addEventListener('click', function () {
-            _stopRecord();
-        });
-
-        _el.report.addEventListener('click', function () {
-            _reportBug();
-        });
-
+        // check whether is recording
         var isRecording = false;
-
         chrome.runtime.sendMessage({
             type: 'isRecording',
             data: {}
         }, function (isRecording) {
-            console.log(isRecording);
-            if (isRecording) {
-                _el.start.style.display = "none";
-                _el.stop.style.display = "block";
-            } else {
-                _el.stop.style.display = "none";
-                _el.start.style.display = "block";
-            }
-
+            $scope.isRecording = isRecording;
         });
-    },
-    _setRecordingTab = function () {
+    };
+
+    $scope.logIn = function () {
+        // save data to localStorage
+        CaptureStorage.saveData({
+            server: $scope.server,
+            username: $scope.username
+        });
+
+        $scope.loading = 'Logging in..';
+        JiraAPIs.auth($scope.server, $scope.username, $scope.password, function (resp, status) {
+            $scope.loading = false;
+            $scope.user = {
+                name: $scope.username
+            };
+
+            JiraAPIs.fetchAllAtlassianInfo(function (key, data) {
+                $scope.info[key] = data;
+                if (data.length) {
+                    $scope.selected[key] = data[0].id;
+                }
+            });
+        }, function (resp, status) {
+            $scope.loading = false;
+            $scope.showLoginFailBox = true;
+        });
+    };
+
+    $scope.logOut = function () {
+        $scope.loading = 'Logging out..';
+        JiraAPIs.logOut(function (resp) {
+            $scope.user = null;
+            $scope.loading = false;
+            $scope.password = '';
+        });
+    };
+
+    $scope.setRecordingTab = function () {
         chrome.tabs.query({active: true, currentWindow: true}, function (tab) {
             chrome.runtime.sendMessage({// createRpfWindow
                 type: 'setRecordingTab',
                 data: tab[0]
             }, function (resp) {
+                console.log('[setRecordingTab]', resp);
                 if (resp) {
-                    _el.alert.style.display = "none";
-
                     CaptureStorage.saveData({recoding_start_url: tab[0].url});
-                    _startRecord();
-                } else {
-                    _el.alert.style.display = "block";
+                    $scope.startRecord();
                 }
+
+                $scope.$apply(function () {
+                    $scope.alert = !resp;
+                })
             });
         });
-    },
-    _startRecord = function () {
+    };
+
+    $scope.startRecord = function () {
         chrome.runtime.sendMessage({
             type: 'startRecording',
             data: {}
@@ -71,33 +112,33 @@ var CapturePopup = (function (CaptureStorage) {
 
         });
 
-        _el.start.style.display = "none";
-        _el.stop.style.display = "block";
-    },
-    _stopRecord = function () {
+        $scope.isRecording = true;
+    };
+
+    $scope.stopRecord = function () {
         chrome.runtime.sendMessage({
             type: 'stopRecording'
         }, function (resp) {
 
         });
 
-        _el.stop.style.display = "none";
-        _el.start.style.display = "block";
-    },
-    _reportBug = function () {
+        $scope.isRecording = false;
+    };
+
+    $scope.reportBug = function () {
         chrome.runtime.sendMessage({
             type: 'reportBug'
         });
     };
 
-    return {
-        init: _init,
-        startRecord: _startRecord,
-        stopRecord: _stopRecord
-    }
-})(CaptureStorage);
+    $scope.initPlaybackWindow = function () {
+        var playbackPopupOpts = CaptureConfigs.get('playback');
 
-document.addEventListener('DOMContentLoaded', function () {
-    CapturePopup.init();
-});
+        chrome.windows.create(playbackPopupOpts, function (window) {
+
+        });
+    };
+
+    _init();
+}]);
 

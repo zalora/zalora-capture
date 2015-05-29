@@ -6,6 +6,7 @@
         <link rel="stylesheet" type="text/css" href="../bower_components/bootstrap/dist/css/bootstrap.min.css">
         <link rel="stylesheet" type="text/css" href="../bower_components/font-awesome/css/font-awesome.min.css">
         <link rel="stylesheet" type="text/css" href="../bower_components/angularjs/angular-csp.css">
+        <link rel="stylesheet" type="text/css" href="css/common.css">
         <link rel="stylesheet" type="text/css" href="css/app.css">
     </head>
     <body>
@@ -44,7 +45,7 @@
                 </div>
             </div>
             <div id="sidebar" class="" ng-controller="MainController">
-                <form id="create-new-issue" method="POST" role="form" ng-show="user && !loading" ng-cloak ng-submit="saveIssue()">
+                <form id="create-new-issue" method="POST" role="form" ng-show=" !loading" ng-cloak ng-submit="saveIssue()">
                     <legend>Create new issue</legend>
 
                     <div class="alert alert-success" role="alert" ng-show="newIssue" ng-cloak>
@@ -81,9 +82,9 @@
                         <textarea ng-model="description" name="description" id="description" class="form-control" required="required" rows="6"></textarea>
                     </div>
 
-                    <div class="form-group">
-                        <label for="actions">User actions <font color="red">*</font></label>
-                        <textarea ng-model="$root.actions" name="actions" id="actions" class="form-control" required="required" rows="10" ></textarea>
+                    <div class="form-group" ng-show="actions">
+                        <label for="actions">User actions</label>
+                        <textarea ng-model="$root.actions" name="actions" id="actions" class="form-control" rows="6" ></textarea>
                     </div>
 
                     <div class="form-group">
@@ -96,40 +97,11 @@
                     </div>
 
                     <button type="submit" class="btn btn-primary">Create</button>
-
-                    <div class="pull-right">
-                        <a href="#" ng-click="logOut()" class="logout">Log out</a>
-                    </div>
                 </form>
-                <div class="save-issue-status" ng-show="loading" ng-cloak>
+                <div class="loading-box" ng-show="loading" ng-cloak>
                     <i class="fa fa-refresh fa-spin"></i>
                     <span>{{loading}}</span>
                 </div>
-                <form method="POST" role="form" ng-show="!user" ng-cloak ng-submit="logIn()">
-                    <legend>Log in JIRA server</legend>
-
-                    <div class="alert alert-danger" role="alert" ng-show="showLoginFailBox">
-                        Log in failed! Please check your credentials!
-                    </div>
-
-                    <div class="form-group">
-                        <label for="server">Server URL <font color="red">*</font></label>
-                        <input type="text" class="form-control" id="server" name="server" placeholder="" required="required" ng-model="server">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="username">Username <font color="red">*</font></label>
-                        <input type="text" class="form-control" id="username" name="username" placeholder="" required="required" ng-model="username">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="password">Password <font color="red">*</font></label>
-                        <input type="password" class="form-control" id="password" name="password" placeholder="" required="required" ng-model="password">
-                    </div>
-
-
-                    <button type="submit" class="btn btn-primary">Log in</button>
-                </form>
             </div>
         </div>
 
@@ -139,6 +111,7 @@
         <script src="http://localhost:35729/livereload.js?snipver=1"></script>
         <script src="js/CaptureConfigs.js"></script>
         <script src="js/CaptureStorage.js"></script>
+        <script src="js/Jira.js"></script>
         <script src="js/CaptureApp.js"></script>
     </body>
 </html>

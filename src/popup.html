@@ -1,37 +1,95 @@
 <!DOCTYPE html>
-<html>
+<html ng-app="CapturePopup">
 <head>
     <link rel="stylesheet" type="text/css" href="../bower_components/bootstrap/dist/css/bootstrap.min.css">
     <link rel="stylesheet" type="text/css" href="../bower_components/font-awesome/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" href="css/common.css">
     <link rel="stylesheet" type="text/css" href="css/popup.css">
+</head>
+<body>
+    <div class="popup" ng-controller="MainController">
+        <h4>Zalora Capture</h4>
 
+        <div id="user" ng-show="user" ng-cloak>
+            <div class="pull-left">
+                <i class="fa fa-user"></i> <b>{{user.name}}</b>
+            </div>
+            <div class="pull-right">
+                <a href="#" ng-click="logOut()" class="logout">Log out</a>
+            </div>
+        </div>
+
+        <div class="loading-box" ng-show="loading" ng-cloak>
+            <i class="fa fa-refresh fa-spin"></i>
+            <span>{{loading}}</span>
+        </div>
+        <form method="POST" role="form" ng-show="!user && !loading" ng-cloak ng-submit="logIn()">
+            <legend>Log in JIRA server</legend>
+
+            <div class="alert alert-danger" role="alert" ng-show="showLoginFailBox">
+                Log in failed! Please check your credentials!
+            </div>
+
+            <div class="form-group">
+                <label for="server">Server URL <font color="red">*</font></label>
+                <input type="text" class="form-control" id="server" name="server" placeholder="" required="required" ng-model="server">
+            </div>
+
+            <div class="form-group">
+                <label for="username">Username <font color="red">*</font></label>
+                <input type="text" class="form-control" id="username" name="username" placeholder="" required="required" ng-model="username">
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password <font color="red">*</font></label>
+                <input type="password" class="form-control" id="password" name="password" placeholder="" required="required" ng-model="password">
+            </div>
+
+
+            <button type="submit" class="btn btn-primary">Log in</button>
+        </form>
+
+        <div id="menu-content" ng-show="user && !loading" ng-cloak>
+            <div id="alert" class="alert alert-danger" class="alert" ng-show="alert" ng-cloak>
+                <strong>Warning!</strong> Maybe you would need to refresh the page under record.
+            </div>
+            <ul id="menu">
+                <li class="desc">
+                    For Testers
+                </li>
+                <li id="start-record" ng-show="!isRecording" ng-cloak>
+                    <a href="#" ng-click="setRecordingTab()" class="btn btn-primary">
+                        <i class="fa fa-circle"></i><span>Start Session</span>
+                    </a>
+                </li>
+                <li id="stop-record" ng-show="isRecording" ng-cloak>
+                    <a href="#" ng-click="stopRecord()" class="btn btn-danger">
+                        <i class="fa fa-stop"></i><span>Stop Session</span>
+                    </a>
+                </li>
+                <li id="report-bug">
+                    <a href="#" ng-click="reportBug()" class="btn btn-primary">
+                        <i class="fa fa-bug"></i><span>Report Bug</span>
+                    </a>
+                </li>
+                <li class="desc">
+                    For Developers
+                </li>
+                <li id="playback" ng-click="initPlaybackWindow()">
+                    <a href="#" class="btn btn-primary">
+                        <i class="fa fa-play"></i><span>Playback</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <script src="../bower_components/angularjs/angular.min.js"></script>
+    <script src="../bower_components/async/lib/async.js"></script>
+    <script src="http://localhost:35729/livereload.js?snipver=1"></script>
+    <script src="js/Jira.js"></script>
     <script src="js/CaptureConfigs.js"></script>
     <script src="js/CaptureStorage.js"></script>
     <script src="js/CapturePopup.js"></script>
-</head>
-<body>
-    <div class="popup">
-        <h4>Zalora Capture</h4>
-        <div id="alert" class="alert alert-danger" class="alert" style="display: none;">
-            <strong>Warning!</strong> Maybe you would need to refresh the page under record.
-        </div>
-        <ul id="menu">
-            <li id="start-record">
-                <a href="#">
-                    <i class="fa fa-circle"></i><span>Start Session</span>
-                </a>
-            </li>
-            <li id="stop-record">
-                <a href="#">
-                    <i class="fa fa-stop"></i><span>Stop Session</span>
-                </a>
-            </li>
-            <li id="report-bug">
-                <a href="#">
-                    <i class="fa fa-bug"></i><span>Report Bug</span>
-                </a>
-            </li>
-        </ul>
-    </div>
 </body>
 </html>

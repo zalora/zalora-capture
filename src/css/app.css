@@ -1,3 +1,9 @@
+/**
+ * App CSS
+ *
+ * @author VinhLH
+ */
+
 body {
     background: #f5f6f7;
     width: 100%;
@@ -170,24 +176,6 @@ body {
 #text-layer:focus,
 #text-layer:active {
     outline: none;
-}
-
-.save-issue-status {
-    width: 100%;
-    height: 100%;
-    text-align: center;
-    padding-top: 30%;
-}
-
-.save-issue-status .fa {
-    font-size: 64px;
-    display: block;
-    margin-bottom: 20px;
-    color: #999;
-}
-
-.save-issue-status span {
-    font-size: 16px;
 }
 
 .logout {

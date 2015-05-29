@@ -19,15 +19,26 @@ var CaptureConfigs = (function () {
                 issue_types: '/rest/api/2/issuetype',
                 // issue_types: '/rest/api/2/issue/createmeta'
             },
+            search: '/rest/api/2/search',
+            search_issue: '/rest/api/2/search?jql=project={projectId}&maxResults=1000&fields=id,key,summary',
+            get_attachment: '/rest/api/2/issue/{issueId}?fields=attachment',
             create_issue: '/rest/api/2/issue',
-            attach_to_issue: '/rest/api/2/issue/%s/attachments',
+            attach_to_issue: '/rest/api/2/issue/{issueId}/attachments',
             log_out: '/rest/auth/latest/session'
         },
         app: {
-            url: 'src/index.html'
+            url: 'src/app.html'
         },
         storage: {
             prefix: 'com.zalora.capture.'
+        },
+        playback: {
+            url: 'src/playback.html',
+            type: 'popup',
+            left: 5,
+            top: 5,
+            width: 500,
+            height: 800
         }
     };
 

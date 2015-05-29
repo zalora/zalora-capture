@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html ng-app="CapturePlayback" ng-csp>
+<head>
+    <meta charset="UTF-8">
+    <title>CapturePlayback</title>
+    <link rel="stylesheet" type="text/css" href="../bower_components/bootstrap/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="../bower_components/font-awesome/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" href="../bower_components/angularjs/angular-csp.css">
+    <link rel="stylesheet" type="text/css" href="css/prism.css">
+    <link rel="stylesheet" type="text/css" href="css/playback.css">
+</head>
+<body>
+
+<form action="" method="POST" role="form" ng-controller="MainController">
+    <legend>Playback</legend>
+
+    <div class="form-group">
+        <label for="project">Project <font color="red">*</font></label>
+        <select name="project" id="project" class="form-control" required="required" ng-model="selected['project']" ng-options="project.id as project.name for project in projects" ng-change="getIssues()" ng-show="projects.length" ng-cloak>
+        </select>
+        <p ng-show="!projects.length" ng-cloak>No project available!</p>
+    </div>
+
+    <div class="form-group">
+        <label for="issue">Issues <font color="red">*</font></label>
+        <select name="issue" id="issue" class="form-control" required="required" ng-model="selected['issue']" ng-options="issue.id as (issue.key + ' ' + issue.fields.summary) for issue in issues" ng-change="getScripts()" ng-show="issues.length" ng-cloak>
+        </select>
+        <p ng-show="!issues.length" ng-cloak>No issue available!</p>
+    </div>
+
+    <div class="form-group">
+        <label for="script">Scripts <font color="red">*</font></label>
+        <select name="script" id="script" class="form-control" required="required" ng-model="selected['script']" ng-options="script.id as (script.filename) for (key, script) in scripts" ng-change="getScriptDetail()" ng-show="scriptKeys.length" ng-cloak>
+        </select>
+        <p ng-show="!scriptKeys.length" ng-cloak>No script available!</p>
+    </div>
+
+    <div class="form-group" ng-show="scriptKeys.length" ng-cloak>
+        <label for="actions">User actions <font color="red">*</font></label>
+        <pre class="line-numbers"><code class="language-actions" prism>{{actions}}</code></pre>
+    </div>
+
+    <div class="form-group" ng-show="scriptKeys.length" ng-cloak>
+        <label for="actions">Start URL</label>
+        <p>
+            <a href="{{startUrl}}" target="__blank">{{startUrl}}</a>
+        </p>
+    </div>
+
+    <button type="submit" class="btn btn-primary" ng-show="scriptKeys.length" ng-cloak>
+        <i class="fa fa-play"></i> Playback
+    </button>
+</form>
+
+    <script src="../bower_components/angularjs/angular.min.js"></script>
+    <script src="../bower_components/async/lib/async.js"></script>
+    <script src="http://localhost:35729/livereload.js?snipver=1"></script>
+    <script src="js/CaptureConfigs.js"></script>
+    <script src="js/CaptureStorage.js"></script>
+    <script src="js/Jira.js"></script>
+    <script src="js/lib/prism.js"></script>
+    <script src="js/ngPrism.js"></script>
+    <script src="js/CapturePlayback.js"></script>
+</body>
+</html>

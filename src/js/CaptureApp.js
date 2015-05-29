@@ -5,7 +5,7 @@
 
 "use strict";
 
-var app = angular.module('CaptureApp', []);
+var app = angular.module('CaptureApp', ['Jira']);
 
 /**
  * configs
@@ -38,9 +38,8 @@ app.factory('CaptureListener', ['JiraAPIs', 'CaptureSender', '$rootScope', funct
             image.src = data;
 
             CaptureSender.send('getUserActions', null, function (resp) {
-                console.log('getUserActions', resp);
+                console.log('[getUserActions]', resp);
                 $rootScope.$apply(function () {
-                    console.log('current actions', $rootScope.actions);
                     $rootScope.actions = resp.join('\n');
                 });
             });
@@ -77,169 +76,6 @@ app.factory('CaptureSender', [function () {
     };
 }])
 
-app.factory('JiraAPIs', ['$http', '$rootScope', '$filter', function($http, $rootScope, $filter){
-    var _configs = {
-        APIs: CaptureConfigs.get('APIs')
-    }, _data = {}, _reporterId = null;
-
-    var _setServer = function (server) {
-        _data['server'] = server;
-    },
-    _auth = function (server, username, password, onSuccess, onError) {
-        $http.post(server + _configs.APIs.auth, {
-            username: username,
-            password, password
-        }).success(function (data, status) {
-            console.log(data, status);
-
-            _reporterId = data.name;
-            _setServer(server);
-            typeof onSuccess !== 'undefined' &&  onSuccess(data, status);
-        }).error(function (data, status) {
-            console.log(data, status);
-            typeof onError !== 'undefined' && onError(data, status);
-        });
-    },
-    _getCurUser = function (server, onSuccess, onError) {
-        $http.get(server + _configs.APIs.auth).success(function (data, status) {
-            console.log(data, status);
-
-            _reporterId = data.name;
-            _setServer(server);
-            typeof onSuccess !== 'undefined' &&  onSuccess(data, status);
-        }).error(function (data, status) {
-            console.log(data, status);
-            typeof onError !== 'undefined' && onError(data, status);
-        });
-    },
-    _parseAPIData = function (data, type) {
-        if (type == 'issue_types') {
-            return data['projects'][0]['issuetypes'];
-        }
-        return data;
-    },
-    _fetchAllAtlassianInfo = function (callback) {
-        angular.forEach(_configs.APIs.info, function(value, key){
-            $http.get(_data['server'] + value).success(function (resp) {
-                // resp = _parseAPIData(resp, key);
-                console.log('set', key, resp);
-                callback(key, resp);
-            });
-        });
-    },
-    _generateMetaData = function (isIncludeEnv, callback) {
-        if (!isIncludeEnv) {
-            callback('');
-            return;
-        }
-
-        var URLs;
-        CaptureStorage.getData('source_url', function (results) {
-            URLs = results['source_url'];
-            var screenRes = screen.width + 'x' + screen.height,
-                userAgent = navigator.userAgent;
-
-            var data = "\n\n\n *Zalora Capture Environment Information* \n- URL: " + URLs + "\n- Screen Resolution: " + screenRes + "\n- User Agent: " + userAgent;
-            callback(data);
-        });
-    },
-    _createIssue = function (projectId, issueTypeId, priorityId, summary, description, isIncludeEnv, onSuccess, onError) {
-        _generateMetaData(isIncludeEnv, function (metaData) {
-            var data = {
-                fields: {
-                    summary: summary,
-                    description: description + metaData,
-                    priority: {
-                        id: priorityId
-                    },
-                    project: {
-                        id: projectId
-                    },
-                    issuetype: {
-                        id: issueTypeId
-                    }
-                }
-            };
-            // console.log(data); return;
-            $http.post(_data['server'] + _configs.APIs.create_issue, data).success(function (resp) {
-                onSuccess(resp);
-            }).error(function (resp) {
-                onError(resp);
-            });
-        });
-    },
-    _dataURLToBlob = function(dataURL) {
-        var BASE64_MARKER = ';base64,';
-        if (dataURL.indexOf(BASE64_MARKER) == -1) {
-            var parts = dataURL.split(',');
-            var contentType = parts[0].split(':')[1];
-            var raw = decodeURIComponent(parts[1]);
-
-            return new Blob([raw], {type: contentType});
-        }
-
-        var parts = dataURL.split(BASE64_MARKER);
-        var contentType = parts[0].split(':')[1];
-        var raw = window.atob(parts[1]);
-        var rawLength = raw.length;
-
-        var uInt8Array = new Uint8Array(rawLength);
-
-        for (var i = 0; i < rawLength; ++i) {
-            uInt8Array[i] = raw.charCodeAt(i);
-        }
-
-        return new Blob([uInt8Array], {type: contentType});
-    },
-    _attachToIssue = function (key, data, fileName, onSuccess, onError) {
-        var url = _data['server'] + _configs.APIs.attach_to_issue.replace('%s', key);
-
-        var fd = new FormData(),
-            fileName = fileName.replace('%s', $filter('date')(Date.now(), "yyyy-MM-dd 'at' h:mma"));
-
-        fd.append('file', data, fileName);
-
-        console.log(fileName);
-
-        $http.post(url, fd, {
-            transformRequest: angular.identity,
-            headers: {
-                'Content-Type': undefined,
-                'X-Atlassian-Token': 'nocheck'
-            }
-        }).success(function (resp) {
-            typeof onSuccess !== 'undefined' && onSuccess(resp);
-        }).error(function (resp) {
-            typeof onError !== 'undefined' && onError(resp);
-        });
-    },
-    _attachScreenshotToIssue = function (key, data, onSuccess, onError) {
-        _attachToIssue(key, _dataURLToBlob(data), 'Screen Shot %s.png', onSuccess, onError);
-    },
-    _attachRecordingData = function (key, data, onSuccess, onError) {
-        var data = new Blob([JSON.stringify(data)], {
-            type: 'application/json'
-        });
-        _attachToIssue(key, data, 'Recording Data %s.json', onSuccess, onError);
-    },
-    _logOut = function (onSuccess, onError) {
-        $http.delete(_data['server'] + _configs.APIs.log_out).success(function (resp) {
-            onSuccess(resp);
-        });
-    };
-
-    return {
-        auth: _auth,
-        getCurUser: _getCurUser,
-        fetchAllAtlassianInfo: _fetchAllAtlassianInfo,
-        createIssue: _createIssue,
-        attachScreenshotToIssue: _attachScreenshotToIssue,
-        attachRecordingData: _attachRecordingData,
-        generateMetaData: _generateMetaData,
-        logOut: _logOut
-    };
-}]);
-
 app.factory('Drawer', ['JiraAPIs', function (JiraAPIs) {
     var _tools = {},
         _activeTool = null,
@@ -256,7 +92,7 @@ app.factory('Drawer', ['JiraAPIs', function (JiraAPIs) {
         };
 
     CaptureStorage.getData('draw_items', function (results) {
-        console.log('draw_items', results);
+        console.log('[draw_items]', results);
     });
 
     var Tool = function (params) {
@@ -267,7 +103,6 @@ app.factory('Drawer', ['JiraAPIs', function (JiraAPIs) {
     };
 
     Tool.prototype.initNewItem = function () {
-        console.log(_items);
         _currentItem = this.params.createNode(event);
 
         if (!_currentItem) {
@@ -373,7 +208,6 @@ app.factory('Drawer', ['JiraAPIs', function (JiraAPIs) {
             _tools[name] = new Tool(params);
         },
         setActiveTool: function (tool) {
-            console.log('check', _currentItem, _activeTool);
             if (_currentItem && _activeTool != null) {
                 if (_tools[_activeTool].params.events.beforeMousedown) {
                     _tools[_activeTool].params.events.beforeMousedown({}, _currentItem);
@@ -407,7 +241,6 @@ app.factory('Drawer', ['JiraAPIs', function (JiraAPIs) {
             return null;
         },
         reset: function () {
-            console.log(_items);
             for (var key in _items) {
                 _items[key].remove();
             }
@@ -439,7 +272,6 @@ app.factory('Drawer', ['JiraAPIs', function (JiraAPIs) {
             img.onload = function() {
                 ctx.drawImage(img, 0, 0);
                 var href = canvas.toDataURL("image/png");
-                console.log('href', href);
 
                 // Now is done
                 if (typeof callback === 'undefined') {
@@ -545,7 +377,6 @@ app.directive('captureCanvas', ['Drawer', function (Drawer) {
                 // return;
 
                 _eventHanders('mousemove', event);
-                // console.log(event.vX, event.vY, event.target.nodeName, event);
             });
         }
     };
@@ -578,7 +409,6 @@ app.controller('DrawController', ['$scope', 'Drawer', '$sce', function ($scope, 
             mousemove: function (event, item) {
             },
             mouseup: function (event, item) {
-                console.log('mouseup on tools');
                 if (item.coords.start.x == item.coords.end.x
                     && item.coords.start.y == item.coords.end.y) {
                     item.remove();
@@ -610,7 +440,6 @@ app.controller('DrawController', ['$scope', 'Drawer', '$sce', function ($scope, 
             mousemove: function (event, item) {
             },
             mouseup: function (event, item) {
-                console.log('mouseup on tools');
                 if (item.coords.start.x == item.coords.end.x
                     && item.coords.start.y == item.coords.end.y) {
                     item.remove();
@@ -710,7 +539,6 @@ app.controller('DrawController', ['$scope', 'Drawer', '$sce', function ($scope, 
             mousedown: function (event, item) {
             },
             mousemove: function (event, item) {
-                // console.log(item.points.length);
                 if (item.points.length > 1) {
                     var lastPoint = item.points[item.points
                         .length - 1],
@@ -742,7 +570,6 @@ app.controller('DrawController', ['$scope', 'Drawer', '$sce', function ($scope, 
         id: 'text',
         name: '<i class="fa fa-font"></i> Text',
         createNode: function (event) {
-            console.log('init text', event);
             $scope.$apply(function () {
                 $scope.textLayer.isShow = true;
                 $scope.textLayer.top = event.vY;
@@ -828,7 +655,7 @@ app.controller('DrawController', ['$scope', 'Drawer', '$sce', function ($scope, 
     // });
 
 
-    Drawer.setActiveTool('text');
+    Drawer.setActiveTool('rect');
 
     $scope.tools = Drawer.getTools();
     $scope.activeTool = Drawer.getActiveTool();
@@ -864,69 +691,53 @@ app.controller('DrawController', ['$scope', 'Drawer', '$sce', function ($scope, 
 app.controller('MainController', ['$scope', 'JiraAPIs', 'CaptureListener', 'Drawer', 'CaptureSender', '$rootScope', function ($scope, JiraAPIs, CaptureListener, Drawer, CaptureSender, $rootScope) {
 
     // init
-    $scope.showCreateIssueBox = false;
-    $scope.isLoggedIn = false;
-    $scope.user = null;
-    $scope.info = {};
-    $scope.selected = {};
+    var _init = function () {
+        $scope.info = {};
+        $scope.selected = {};
 
-    // parse login info if available
-    CaptureStorage.getData(['server', 'username'], function (results) {
-        if (results) {
-            console.log(results);
-            angular.forEach(results, function(value, key){
-                $scope[key] = value;
-
-                // check login
-                if (key == 'server') {
-                    JiraAPIs.getCurUser($scope.server, function (resp) {
-                        $scope.user = resp
-
-                        JiraAPIs.fetchAllAtlassianInfo(function (key, data) {
-                            $scope.info[key] = data;
-
-                            if (data.length) {
-                                $scope.selected[key] = data[0].id;
-                            }
-                        });
-                    });
+        // on ready
+        angular.element(document).ready(function () {
+            CaptureSender.send('getScreenshot', null, function (resp) {
+                if (resp) {
+                    CaptureListener.actions.updateScreenshot(resp);
                 }
             });
-        }
-    });
+        });
 
-    // on ready
-    angular.element(document).ready(function () {
-        CaptureSender.send('getScreenshot', null, function (resp) {
-            if (resp) {
-                CaptureListener.actions.updateScreenshot(resp);
+        CaptureStorage.getData('server', function (resp) {
+            if (resp.server) {
+                $scope.server = resp.server;
             }
         });
-    });
 
-    $scope.logIn = function () {
-        console.log($scope.username, $scope.password, $scope.server);
+        JiraAPIs.fetchAllAtlassianInfo(function (key, data) {
+            $scope.info[key] = data;
 
-        // save data to localStorage
-        CaptureStorage.saveData({
-            server: $scope.server,
-            username: $scope.username
+            if (data.length) {
+                $scope.selected[key] = data[0].id;
+            }
         });
 
-        $scope.loading = 'Logging in..';
-        JiraAPIs.auth($scope.server, $scope.username, $scope.password, function (resp, status) {
-            $scope.loading = false;
-            $scope.user = resp;
-            JiraAPIs.fetchAllAtlassianInfo(function (key, data) {
-                $scope.info[key] = data;
-                if (data.length) {
-                    $scope.selected[key] = data[0].id;
+        $scope.includeEnv = true;
+    },
+    _removeInfoMapRedundant = function(infoMap, script, screenshots) {
+        if (!infoMap || !infoMap['steps'] || !infoMap['elems']) {
+            return;
+        }
+
+        var steps = infoMap['steps'];
+        for (var stepId in steps) {
+            if (script.indexOf(stepId) == -1) {
+                var elemId = steps[stepId]['elemId'];
+                if (infoMap['elems'][elemId]) {
+                    delete infoMap['elems'][elemId];
                 }
-            });
-        }, function (resp, status) {
-            $scope.loading = false;
-            $scope.showLoginFailBox = true;
-        });
+                if (screenshots[stepId]) {
+                    delete screenshots[stepId];
+                }
+                delete steps[stepId];
+            }
+        }
     };
 
     $scope.saveIssue = function () {
@@ -934,7 +745,7 @@ app.controller('MainController', ['$scope', 'JiraAPIs', 'CaptureListener', 'Draw
 
         async.parallel({
             issueId: function (callback) {
-                // return callback(null, 'DP-6');
+                // return callback(null, 'DP-74');
                 JiraAPIs.createIssue($scope.selected['projects'], $scope.selected['issue_types'], $scope.selected['priorities'], $scope.summary, $scope.description, $scope.includeEnv, function (resp) {
 
                     // TODO: display success message
@@ -955,6 +766,7 @@ app.controller('MainController', ['$scope', 'JiraAPIs', 'CaptureListener', 'Draw
             // TODO: check error status
             async.series({
                 issueId: function (callback) { // attach screenshot
+                    // return callback(null, results.issueId);
                     $scope.loading = 'Uploading attachments..';
 
                     JiraAPIs.attachScreenshotToIssue(results.issueId, results.screenshot, function (resp) {
@@ -974,11 +786,14 @@ app.controller('MainController', ['$scope', 'JiraAPIs', 'CaptureListener', 'Draw
                     });
                 },
                 recordingData: function (callback) { // fetch recording data
+                    if (!$scope.actions.trim()) {
+                        return callback(null, null);
+                    }
+
                     var scripts = $scope.actions.split('\n');
 
                     CaptureSender.send('getRecordingData', null, function (resp) {
                         _removeInfoMapRedundant(resp.infoMap, $scope.actions, resp.screenshots);
-                        console.log(resp.infoMap, scripts, resp.screenshots);
 
                         if (resp.infoMap) {
                             callback(null, {
@@ -991,15 +806,17 @@ app.controller('MainController', ['$scope', 'JiraAPIs', 'CaptureListener', 'Draw
                         }
                     });
                 }
-            }, function (err, results) { // attach recording data
-                if (!results.recordingData) {
-                    $scope.loading = false;
-                    $scope.actions = '';
+            }, function (err, finalResults) { // attach recording data
+                if (!finalResults.recordingData) {
+                    $scope.$apply(function () {
+                        $scope.loading = false;
+                        $scope.actions = '';
+                    });
                 } else {
                     $scope.loading = 'Uploading user actions data..';
-                    results.recordingData['startUrl'] = results.startUrl;
+                    finalResults.recordingData['startUrl'] = finalResults.startUrl;
 
-                    JiraAPIs.attachRecordingData(results.issueId, results.recordingData, function (resp) {
+                    JiraAPIs.attachRecordingData(finalResults.issueId, finalResults.recordingData, function (resp) {
                         $scope.loading = false;
                         $scope.actions = '';
                     }, function (resp) {
@@ -1010,35 +827,5 @@ app.controller('MainController', ['$scope', 'JiraAPIs', 'CaptureListener', 'Draw
         });
     };
 
-    $scope.logOut = function () {
-        $scope.loading = 'Logging out..';
-        JiraAPIs.logOut(function (resp) {
-            $scope.user = null;
-            $scope.loading = false;
-            $scope.password = '';
-        });
-    };
-
-    $scope.includeEnv = true;
-
-    // save recording data
-    var _removeInfoMapRedundant = function(
-    infoMap, script, screenshots) {
-        if (!infoMap || !infoMap['steps'] || !infoMap['elems']) {
-            return;
-        }
-        var steps = infoMap['steps'];
-        for (var stepId in steps) {
-            if (script.indexOf(stepId) == -1) {
-                var elemId = steps[stepId]['elemId'];
-                if (infoMap['elems'][elemId]) {
-                    delete infoMap['elems'][elemId];
-                }
-                if (screenshots[stepId]) {
-                    delete screenshots[stepId];
-                }
-                delete steps[stepId];
-            }
-        }
-    };
+    _init();
 }]);
