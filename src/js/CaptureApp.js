@@ -74,148 +74,154 @@ app.factory('CaptureSender', [function () {
     return {
         send: _send
     };
-}])
+}]);
 
-app.factory('Drawer', ['JiraAPIs', function (JiraAPIs) {
-    var _tools = {},
-        _activeTool = null,
-        _items = [],
-        _currentItem = null,
-        _settings = {
-            color: 'red'
-        },
-        _defaultAttrs = {
-            fill: 'transparent',
-            stroke: _settings.color,
-            'stroke-width': 5,
-            'stroke-opacity': 1.0
-        };
-
-    CaptureStorage.getData('draw_items', function (results) {
-        console.log('[draw_items]', results);
-    });
-
-    var Tool = function (params) {
-        this.params = params;
-        if (typeof params.init !== 'undefined') {
-            params.init();
-        }
-    };
-
-    Tool.prototype.initNewItem = function () {
-        _currentItem = this.params.createNode(event);
-
-        if (!_currentItem) {
-            return;
-        }
-
-        _currentItem.coords = {
-            start: {x: 0, y: 0},
-            end: {x: 0, y: 0}
-        };
-
-        if (typeof event.dontSetDefaultAttrs === 'undefined' || !event.dontSetDefaultAttrs) {
-            for (var attr in _defaultAttrs) {
-                _currentItem.attr(attr, _defaultAttrs[attr]);
-            }
-        }
-
-        // _currentItem.drag();
-        _currentItem.attr('stroke', _settings.color);
-
-        _items.push(_currentItem);
-        // CaptureStorage.saveData({'draw_items': _items});
-    };
-
-    Tool.prototype.mousedown = function (event) {
-        if (typeof this.params.events.beforeMousedown !== 'undefined') {
-            this.params.events.beforeMousedown(event, _currentItem);
-
-            if (_currentItem && _currentItem.removed) {
-                _items.splice(_items.length - 1, 1);
-            }
-
-            if (event.setItemNull) {
-                _currentItem = null;
-            }
-        }
-
-        if (!_currentItem) {
-            this.initNewItem();
-        }
-
-        _currentItem.coords.start = {
-            x: event.vX,
-            y: event.vY
-        };
-        _currentItem.coords.end = {
-            x: event.vX,
-            y: event.vY
-        };
-
-        if (typeof this.params.events.mousedown !== 'undefined') {
-            this.params.events.mousedown(event, _currentItem);
-        }
-
-        this.render();
-    };
-
-    Tool.prototype.mouseup = function (event) {
-        if (typeof this.params.events.mouseup !== 'undefined') {
-            this.params.events.mouseup(event, _currentItem);
-        }
-
-        this.render();
-
-        if (_currentItem.removed) {
-            _items.splice(_items.length - 1, 1);
-        }
-
-        if (!event.dontSetItemNull) {
-            _currentItem = null;
-        }
-    };
-
-    Tool.prototype.mousemove = function (event) {
-        if (!_currentItem) {
-            return false;
-        }
-
-        _currentItem.coords.end = {
-            x: event.vX,
-            y: event.vY
-        };
-
-        if (typeof this.params.events.mousemove !== 'undefined') {
-            this.params.events.mousemove(event, _currentItem);
-        }
-
-        this.render();
-    };
-
-    Tool.prototype.render = function () {
-        this.params.render.call(this, _currentItem);
-    };
-
-    Tool.prototype.keypress = function (event) {
-        if (typeof this.params.events.keypress !== 'undefined') {
-            this.params.events.keypress(event, _currentItem);
-        }
+app.factory('DrawSettings', [function () {
+    var _settings = {
+        color: 'red'
     };
 
     return {
+        set: function (setting, color) {
+            console.log('set', setting, color);
+            _settings[setting] = color;
+        },
+        get: function (setting) {
+            console.log('get', setting);
+            return _settings[setting];
+        }
+    };
+}])
+
+app.factory('Tool', ['DrawSettings', function (DrawSettings) {
+    var Tool = function (params, handlers) {
+        this.params = {
+            hooks: {
+                beforeMousedown: function () {}
+            },
+            events: {
+                mousedown: undefined,
+                mouseup: undefined,
+                mousemove: undefined
+            },
+            attrs: {},
+            render: function () {},
+            createElement: function () {}
+        };
+
+        this.params = angular.extend(this.params, params);
+
+        this.handlers = handlers;
+
+        this.elements = [];
+        this.activeElement = null;
+    };
+
+    Tool.prototype.mousedown = function (x, y) {
+        console.log('mousedown', x, y);
+
+        this.params.hooks.beforeMousedown.call(this, x, y);
+
+        if (!this.activeElement) {
+            this.activeElement = this.params.createElement.call(this, x, y);
+            this.elements.push(this.activeElement);
+        }
+
+        if (this.params.events.mousedown) {
+            this.params.events.mousedown.call(this, x, y);
+        } else { // default behaviors
+            this.setStartPoint(x, y);
+            this.setEndPoint(x, y);
+            this.render();
+        }
+    };
+
+    Tool.prototype.mouseup = function (x, y) {
+        console.log('mouseup', x, y);
+
+        if (this.params.events.mouseup) {
+            this.params.events.mouseup.call(this, x, y);
+        } else { // default behaviors
+            if (this.isSamePoint() && this.activeElement) {
+                console.log('isSamePoint');
+                this.activeElement.remove();
+                this.activeElement = null;
+                this.elements.splice(this.elements.length - 1, 1);
+                return;
+            }
+
+            this.render();
+            this.activeElement = null;
+        }
+    };
+
+    Tool.prototype.mousemove = function (x, y) {
+        console.log('mousemove', x, y);
+
+        if (this.params.events.mousemove) {
+            this.params.events.mousemove.call(this, x, y);
+        } else { // default behaviors
+            this.setEndPoint(x, y);
+            this.render();
+        }
+    };
+
+    Tool.prototype.setStartPoint = function (x, y) {
+        this.activeElement.pStart = {
+            x: x,
+            y: y
+        };
+    };
+
+    Tool.prototype.setEndPoint = function (x, y) {
+        this.activeElement.pEnd = {
+            x: x,
+            y: y
+        };
+    };
+
+    Tool.prototype.render = function () {
+        console.log(this.params.attrs);
+        for (var attrKey in this.params.attrs) {
+            var attrValue;
+            if (this.params.attrs[attrKey] == 'color') {
+                attrValue = DrawSettings.get('color');
+            } else {
+                attrValue = this.params.attrs[attrKey];
+            }
+
+            this.activeElement.attr(attrKey, attrValue);
+        }
+
+        this.params.render.call(this);
+    };
+
+    Tool.prototype.isSamePoint = function () {
+        console.log(this.activeElement.pStart, this.activeElement.pEnd);
+        return this.activeElement.pStart.x == this.activeElement.pEnd.x && this.activeElement.pStart.y == this.activeElement.pEnd.y;
+    };
+
+    return Tool;
+}]);
+
+app.factory('Drawer', ['JiraAPIs', 'Tool', function (JiraAPIs, Tool) {
+    var _tools = {},
+        _activeTool = null,
+        _handlers = {};
+
+    return {
+        set: function (handler, data) {
+            _handlers[handler] = data;
+        },
         addTool: function (name, params) {
-            _tools[name] = new Tool(params);
+            _tools[name] = new Tool(params, _handlers);
         },
         setActiveTool: function (tool) {
-            if (_currentItem && _activeTool != null) {
-                if (_tools[_activeTool].params.events.beforeMousedown) {
-                    _tools[_activeTool].params.events.beforeMousedown({}, _currentItem);
-                }
+            if (_activeTool && _tools[_activeTool].activeElement) {
+                _tools[_activeTool].render();
             }
 
             _activeTool = tool;
-            _currentItem = null;
         },
         getTools: function () {
             return _tools;
@@ -226,7 +232,6 @@ app.factory('Drawer', ['JiraAPIs', function (JiraAPIs) {
             }
             return null;
         },
-
         getActiveTool: function () {
             return _tools[_activeTool];
         },
@@ -241,11 +246,13 @@ app.factory('Drawer', ['JiraAPIs', function (JiraAPIs) {
             return null;
         },
         reset: function () {
-            for (var key in _items) {
-                _items[key].remove();
-            }
+            for(var toolKey in _tools) {
+                var tool = _tools[toolKey];
 
-            _items = [];
+                for (var elementKey in tool.elements) {
+                    tool.elements[elementKey].remove();
+                }
+            }
         },
         b64_to_utf8: function (str) {
             return decodeURIComponent(escape(window.atob(str)));
@@ -335,48 +342,48 @@ app.directive('captureCanvas', ['Drawer', function (Drawer) {
         link: function ($scope, $element, attr) {
             $scope.canvas = Snap('#draw-canvas');
 
-            var _eventHanders = function (eventName, event) {
+            var _eventHanders = function (eventName, x, y) {
                 if (Drawer.getActiveTool() && typeof Drawer.getActiveTool()[eventName] !== 'undefined') {
-                    Drawer.getActiveTool()[eventName](event);
+                    Drawer.getActiveTool()[eventName](x, y);
                 }
             },
             _convertCoords = function (event) {
-                event.vX = event.offsetX,
-                event.vY = event.offsetY;
+                var data = {};
                 if (event.target.nodeName == 'text') {
-                    event.vX = event.offsetX + event.target.offsetLeft;
-                    event.vY = event.offsetY + event.target.offsetTop;
+                    data.x = event.offsetX + event.target.offsetLeft;
+                    data.y = event.offsetY + event.target.offsetTop;
                 } else if (event.target.nodeName == 'tspan') {
-                    event.vX = event.offsetX + event.target.offsetLeft;
-                    event.vY = event.target.offsetTop;
+                    data.x = event.offsetX + event.target.offsetLeft;
+                    data.y = event.target.offsetTop;
+                } else {
+                    data.x = event.offsetX,
+                    data.y = event.offsetY;
                 }
 
-                return event;
+                return data;
             };
 
             var _isDown = false;
             $element.on('mousedown', function (event) {
                 _isDown = true;
 
-                event = _convertCoords(event);
-                _eventHanders('mousedown', event);
+                var data = _convertCoords(event);
+                _eventHanders('mousedown', data.x, data.y);
             });
 
             $element.on('mouseup', function (event) {
                 _isDown = false;
 
-                event = _convertCoords(event);
-                _eventHanders('mouseup', event);
+                var data = _convertCoords(event);
+                _eventHanders('mouseup', data.x, data.y);
             });
 
             $element.on('mousemove', function (event) {
                 if (!_isDown) {
                     return;
                 }
-                event = _convertCoords(event);
-                // return;
-
-                _eventHanders('mousemove', event);
+                var data = _convertCoords(event);
+                _eventHanders('mousemove', data.x, data.y);
             });
         }
     };
@@ -386,7 +393,7 @@ app.directive('captureCanvas', ['Drawer', function (Drawer) {
  * controllers
  */
 
-app.controller('DrawController', ['$scope', 'Drawer', '$sce', function ($scope, Drawer, $sce) {
+app.controller('DrawController', ['$scope', 'Drawer', '$sce', 'DrawSettings', function ($scope, Drawer, $sce, DrawSettings) {
     $scope.canvas = Snap('#draw-canvas');
     $scope.colors = CaptureConfigs.get('canvas', 'colors');
     $scope.textLayer = {
@@ -397,263 +404,218 @@ app.controller('DrawController', ['$scope', 'Drawer', '$sce', function ($scope, 
     };
     $scope.textlayerData = '';
 
+    Drawer.set('canvas', $scope.canvas);
+
+    var _defaultAttrs = {
+        'fill': 'transparent',
+        'stroke': 'color',
+        'stroke-width': 5,
+        'stroke-opacity': 1.0
+    };
+
     Drawer.addTool('rect', {
         id: 'rect',
         name: '<i class="fa fa-square-o"></i> Rectangle',
-        createNode: function (event) {
-            return $scope.canvas.rect(event.vX, event.vY, 0, 0);
+        attrs: _defaultAttrs,
+        createElement: function (x, y) {
+            return this.handlers['canvas'].rect(x, y, 0, 0);
         },
-        events: {
-            mousedown: function (event, item) {
-            },
-            mousemove: function (event, item) {
-            },
-            mouseup: function (event, item) {
-                if (item.coords.start.x == item.coords.end.x
-                    && item.coords.start.y == item.coords.end.y) {
-                    item.remove();
-                }
-            }
-        },
-        render: function (item) {
-            var dy = Math.abs(item.coords.end.y - item.coords.start.y),
-                dx = Math.abs(item.coords.end.x - item.coords.start.x),
-                x = Math.min(item.coords.start.x, item.coords.end.x),
-                y = Math.min(item.coords.start.y, item.coords.end.y);
+        render: function () {
+            var dy = Math.abs(this.activeElement.pEnd.y - this.activeElement.pStart.y),
+                dx = Math.abs(this.activeElement.pEnd.x - this.activeElement.pStart.x),
+                x = Math.min(this.activeElement.pStart.x, this.activeElement.pEnd.x),
+                y = Math.min(this.activeElement.pStart.y, this.activeElement.pEnd.y);
 
-            item.attr('x', x);
-            item.attr('y', y);
-            item.attr('height', dy);
-            item.attr('width', dx);
+            this.activeElement.attr('x', x);
+            this.activeElement.attr('y', y);
+            this.activeElement.attr('height', dy);
+            this.activeElement.attr('width', dx);
         }
     });
 
     Drawer.addTool('ellipse', {
         id: 'ellipse',
         name: '<i class="fa fa-circle-thin"></i> Ellipse',
-        createNode: function (event) {
-            return $scope.canvas.ellipse(event.vX, event.vY, 0, 0);
+        attrs: _defaultAttrs,
+        createElement: function (x, y) {
+            return this.handlers['canvas'].ellipse(x, y, 0, 0);
         },
-        events: {
-            mousedown: function (event, item) {
-            },
-            mousemove: function (event, item) {
-            },
-            mouseup: function (event, item) {
-                if (item.coords.start.x == item.coords.end.x
-                    && item.coords.start.y == item.coords.end.y) {
-                    item.remove();
-                }
-            }
-        },
-        render: function (item) {
-            var dy = Math.abs(item.coords.end.y - item.coords.start.y) / 2,
-                dx = Math.abs(item.coords.end.x - item.coords.start.x) / 2,
-                x = Math.min(item.coords.start.x, item.coords.end.x),
-                y = Math.min(item.coords.start.y, item.coords.end.y);
+        render: function () {
+            var dy = Math.abs(this.activeElement.pEnd.y - this.activeElement.pStart.y) / 2,
+                dx = Math.abs(this.activeElement.pEnd.x - this.activeElement.pStart.x) / 2,
+                x = Math.min(this.activeElement.pStart.x, this.activeElement.pEnd.x),
+                y = Math.min(this.activeElement.pStart.y, this.activeElement.pEnd.y);
 
-            console.log(x + dx, y + dy);
-
-            item.attr('cx', x + dx);
-            item.attr('cy', y + dy);
-            item.attr('rx', dx);
-            item.attr('ry', dy);
+            this.activeElement.attr('cx', x + dx);
+            this.activeElement.attr('cy', y + dy);
+            this.activeElement.attr('rx', dx);
+            this.activeElement.attr('ry', dy);
         }
     });
 
     Drawer.addTool('line', {
         id: 'line',
         name: '<i class="fa fa-minus"></i> Line',
-        createNode: function (event) {
-            return $scope.canvas.line(event.vX, event.vY, 0, 0);
+        attrs: {
+            'stroke': 'color',
+            'stroke-width': 5
         },
-        events: {
-            mousedown: function (event, item) {
-            },
-            mousemove: function (event, item) {
-            },
-            mouseup: function (event, item) {
-                if (item.coords.start.x == item.coords.end.x
-                    && item.coords.start.y == item.coords.end.y) {
-                    item.remove();
-                }
-            }
+        createElement: function (x, y) {
+            return this.handlers['canvas'].line(x, y, x, y);
         },
         render: function (item) {
-            item.attr('x1', item.coords.start.x);
-            item.attr('y1', item.coords.start.y);
-            item.attr('x2', item.coords.end.x);
-            item.attr('y2', item.coords.end.y);
+            this.activeElement.attr('x1', this.activeElement.pStart.x);
+            this.activeElement.attr('y1', this.activeElement.pStart.y);
+            this.activeElement.attr('x2', this.activeElement.pEnd.x);
+            this.activeElement.attr('y2', this.activeElement.pEnd.y);
         }
     });
 
     Drawer.addTool('arrow', {
         id: 'arrow',
         name: '<i class="fa fa-long-arrow-right"></i> Arrow',
-        createNode: function (event) {
-            var p1 = $scope.canvas.path("M0,0 L0,6 L6,3 L0,0").attr({
-                    fill: Drawer.getSetting('color'),
-                    'fill-opacity': 1.0
-                }),
-                marker = p1.marker(0, 0, 6, 6, 3, 3);
+        attrs: {
+            'stroke': 'color',
+            'stroke-width': 5
+        },
+        createElement: function (x, y) {
+            var path, arrow, marker;
 
-            var arrow = $scope.canvas.path(Snap.format('M{x},{y}', {x: event.vX, y: event.vY}));
+
+            path = this.handlers['canvas'].path("M0,0 L0,6 L6,3 L0,0").attr({
+                'fill': 'color'
+            });
+            marker = path.marker(0, 0, 6, 6, 3, 3);
+
+            arrow = $scope.canvas.path(Snap.format('M{x},{y}', {x: x, y: y}));
             arrow.attr('marker-end', marker);
 
             return arrow;
         },
-        events: {
-            mousedown: function (event, item) {
-            },
-            mousemove: function (event, item) {
-            },
-            mouseup: function (event, item) {
-                if (item.coords.start.x == item.coords.end.x
-                    && item.coords.start.y == item.coords.end.y) {
-                    item.remove();
-                }
-            }
-        },
         render: function (item) {
             var path = Snap.format('M{x1},{y1} L{x2},{y2}', {
-                x1: item.coords.start.x,
-                y1: item.coords.start.y,
-                x2: item.coords.end.x,
-                y2: item.coords.end.y
+                x1: this.activeElement.pStart.x,
+                y1: this.activeElement.pStart.y,
+                x2: this.activeElement.pEnd.x,
+                y2: this.activeElement.pEnd.y
             });
-            item.attr('path', path);
+
+            this.activeElement.attr('path', path);
+            this.activeElement.attr('marker-end').attr('fill', DrawSettings.get('color'));
         }
     });
 
     Drawer.addTool('draw', {
         id: 'draw',
+        attrs: _defaultAttrs,
         name: '<i class="fa fa-paint-brush"></i> Draw',
-        createNode: function (event) {
-            var item = $scope.canvas.path(Snap.format('M{x},{y}', {x: event.vX, y: event.vY}));
+        createElement: function (x, y) {
+            var element = this.handlers['canvas'].path(Snap.format('M{x},{y}', {x: x, y: y}));
+            element.points = [[x, y]];
 
-            item.points = [[event.vX, event.vY]];
-
-            return item;
+            return element;
         },
         events: {
-            mousedown: function (event, item) {
-            },
-            mousemove: function (event, item) {
-                if (item.points.length > 1) {
-                    var lastPoint = item.points[item.points
+            mousemove: function (x, y) {
+                if (this.activeElement.points.length > 1) {
+                    var lastPoint = this.activeElement.points[this.activeElement.points
                         .length - 1],
-                        dist = Math.sqrt(Math.pow(event.vX - lastPoint[0], 2) + Math.pow(event.vY - lastPoint[1], 2));
+                        dist = Math.sqrt(Math.pow(x - lastPoint[0], 2) + Math.pow(y - lastPoint[1], 2));
                     if (dist > 5) {
-                        item.points.push([event.vX, event.vY]);
+                        this.activeElement.points.push([x, y]);
+                        this.render();
                     }
                 } else {
-                    item.points.push([event.vX, event.vY]);
+                    this.activeElement.points.push([x, y]);
+                    this.render();
                 }
             },
-            mouseup: function (event, item) {
+            mousedown: function (x, y) {},
+            mouseup: function (x, y) {
+                if (this.activeElement.points.length <= 1) {
+                    this.activeElement.remove();
+                    this.activeElement = null;
+                    this.elements.splice(this.elements.length - 1, 1);
+                    return;
+                }
+
+                this.render();
+                this.activeElement = null;
             }
         },
-        render: function (item) {
-            var numPoints = item.points.length,
-                path = ['M', item.points[0][0], ', ', item.points[0][1], ' '];
+        render: function () {
+            var numPoints = this.activeElement.points.length,
+                path = ['M', this.activeElement.points[0][0], ', ', this.activeElement.points[0][1], ' '];
 
             for( var i = 1; i < numPoints; i++) {
-                path.push('L', item.points[i][0], ',', item.points[i][1], ' ');
+                path.push('L', this.activeElement.points[i][0], ',', this.activeElement.points[i][1], ' ');
             }
 
             path = path.join('');
-            item.attr('path', path);
+            this.activeElement.attr('path', path);
         }
     });
 
     Drawer.addTool('text', {
         id: 'text',
         name: '<i class="fa fa-font"></i> Text',
-        createNode: function (event) {
-            $scope.$apply(function () {
-                $scope.textLayer.isShow = true;
-                $scope.textLayer.top = event.vY;
-                $scope.textLayer.left = event.vX;
-                $scope.textLayer.focus = true;
-            });
-
-            event.dontSetDefaultAttrs = true;
-
-            var item = $scope.canvas.text(event.vX, event.vY, '');
-            item.attr('stoke', 'transparent');
-            item.attr('stroke-width', 0);
-            item.attr('font-weight', 'bold');
-            item.attr('font-size', '16px');
-            item.attr('font-family', 'Arial, Helvetica, sans-serif');
-            item.attr('fill', Drawer.getSetting('color'));
-
-            return item;
+        attrs: {
+            'stoke': 'transparent',
+            'stroke-width': 0,
+            'font-weight': 'bold',
+            'font-size': '16px',
+            'font-family': 'Arial, Helvetica, sans-serif',
+            'fill': 'color'
+        },
+        createElement: function (x, y) {
+            return this.handlers['canvas'].text(x, y, '');
         },
         events: {
-            beforeMousedown: function (event, item) {
-                if (item) {
-                    if ($scope.textlayerData.trim() == '') {
-                        item.remove();
-                    } else {
-                        var text = $scope.textlayerData.replace(/<\/div>/g, '').replace(/<div>/g, "<br>").replace(/&nbsp;/g, ' ');
-
-                        text = text.split("<br>");
-                        item.attr('text', text);
-
-                        item.selectAll("tspan:nth-child(n+2)").attr({
-                            dy: "1.4em",
-                            x: item.attr('x')
-                        });
-                        $scope.textlayerData = '';
-                    }
-
-                    if ($scope.textLayer.focus) {
-                        $scope.$apply(function () {
-                            $scope.textLayer.focus = false;
-                        });
-                    }
-                    event.setItemNull = true;
-                }
-            },
-            mousedown: function (event, item) {
-            },
-            mousemove: function (event, item) {
-            },
-            mouseup: function (event, item) {
+            mouseup: function (x, y) {
                 $scope.$apply(function () {
-                    $scope.textLayer.top = event.vY;
-                    $scope.textLayer.left = event.vX;
+                    $scope.textLayer.isShow = true;
+                    $scope.textLayer.top = y;
+                    $scope.textLayer.left = x;
                     $scope.textLayer.focus = true;
                     $scope.textLayerData = '';
-
-                    item.attr('x', event.vX);
-                    item.attr('y', event.vY);
                 });
-
-                event.dontSetItemNull = true;
-            }
+            },
+            mousedown: function (x, y) {},
+            mousemove: function (x, y) {}
         },
-        render: function (item) {
+        hooks: {
+            beforeMousedown: function (x, y) {
+                if (this.activeElement) {
+                    this.render();
+                }
+            },
+        },
+        render: function () {
+            if ($scope.textlayerData.trim() == '') {
+                this.activeElement.remove();
+                this.elements.splice(this.elements.length - 1, 1);
+            } else {
+                var text = $scope.textlayerData.replace(/<\/div>/g, '').replace(/<div>/g, "<br>").replace(/&nbsp;/g, ' ');
+
+                text = text.split("<br>");
+                this.activeElement.attr('text', text);
+
+                this.activeElement.selectAll("tspan:nth-child(n+2)").attr({
+                    dy: "1.4em",
+                    x: this.activeElement.attr('x')
+                });
+                $scope.textlayerData = '';
+            }
+
+            if ($scope.textLayer.focus) {
+                $scope.$apply(function () {
+                    $scope.textLayer.focus = false;
+                });
+            }
+
+            this.activeElement = null;
         }
     });
-
-    // Drawer.addTool('move', {
-    //     id: 'move',
-    //     name: '<i class="fa fa-arrows"></i> Move',
-    //     createNode: function (event) {
-    //     },
-    //     events: {
-    //         mousedown: function (event, item) {
-    //         },
-    //         mousemove: function (event, item) {
-    //         },
-    //         mouseup: function (event, item) {
-    //         }
-    //     },
-    //     render: function (item) {
-    //     }
-    // });
-
 
     Drawer.setActiveTool('rect');
 
@@ -667,7 +629,7 @@ app.controller('DrawController', ['$scope', 'Drawer', '$sce', function ($scope, 
 
     $scope.setActiveColor = function (value) {
         $scope.activeColor = value;
-        Drawer.setSetting('color', value);
+        DrawSettings.set('color', value);
     };
     $scope.setActiveColor($scope.colors[0]);
     $scope.$sce = $sce;
