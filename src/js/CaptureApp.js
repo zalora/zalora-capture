@@ -198,7 +198,8 @@ app.factory('Tool', ['DrawSettings', function (DrawSettings) {
 
     Tool.prototype.isSamePoint = function () {
         console.log(this.activeElement.pStart, this.activeElement.pEnd);
-        return this.activeElement.pStart.x == this.activeElement.pEnd.x && this.activeElement.pStart.y == this.activeElement.pEnd.y;
+        return this.activeElement.pStart.x == this.activeElement.pEnd.x
+            && this.activeElement.pStart.y == this.activeElement.pEnd.y;
     };
 
     return Tool;
@@ -343,7 +344,8 @@ app.directive('captureCanvas', ['Drawer', function (Drawer) {
             $scope.canvas = Snap('#draw-canvas');
 
             var _eventHanders = function (eventName, x, y) {
-                if (Drawer.getActiveTool() && typeof Drawer.getActiveTool()[eventName] !== 'undefined') {
+                if (Drawer.getActiveTool()
+                    && typeof Drawer.getActiveTool()[eventName] !== 'undefined') {
                     Drawer.getActiveTool()[eventName](x, y);
                 }
             },
@@ -393,7 +395,8 @@ app.directive('captureCanvas', ['Drawer', function (Drawer) {
  * controllers
  */
 
-app.controller('DrawController', ['$scope', 'Drawer', '$sce', 'DrawSettings', function ($scope, Drawer, $sce, DrawSettings) {
+app.controller('DrawController', ['$scope', 'Drawer', '$sce', 'DrawSettings',
+    function ($scope, Drawer, $sce, DrawSettings) {
     $scope.canvas = Snap('#draw-canvas');
     $scope.colors = CaptureConfigs.get('canvas', 'colors');
     $scope.textLayer = {
@@ -405,6 +408,7 @@ app.controller('DrawController', ['$scope', 'Drawer', '$sce', 'DrawSettings', fu
     $scope.textlayerData = '';
 
     Drawer.set('canvas', $scope.canvas);
+    Drawer.set('scope', $scope);
 
     var _defaultAttrs = {
         'fill': 'transparent',
@@ -418,7 +422,7 @@ app.controller('DrawController', ['$scope', 'Drawer', '$sce', 'DrawSettings', fu
         name: '<i class="fa fa-square-o"></i> Rectangle',
         attrs: _defaultAttrs,
         createElement: function (x, y) {
-            return this.handlers['canvas'].rect(x, y, 0, 0);
+            return this.handlers.canvas.rect(x, y, 0, 0);
         },
         render: function () {
             var dy = Math.abs(this.activeElement.pEnd.y - this.activeElement.pStart.y),
@@ -438,7 +442,7 @@ app.controller('DrawController', ['$scope', 'Drawer', '$sce', 'DrawSettings', fu
         name: '<i class="fa fa-circle-thin"></i> Ellipse',
         attrs: _defaultAttrs,
         createElement: function (x, y) {
-            return this.handlers['canvas'].ellipse(x, y, 0, 0);
+            return this.handlers.canvas.ellipse(x, y, 0, 0);
         },
         render: function () {
             var dy = Math.abs(this.activeElement.pEnd.y - this.activeElement.pStart.y) / 2,
@@ -461,7 +465,7 @@ app.controller('DrawController', ['$scope', 'Drawer', '$sce', 'DrawSettings', fu
             'stroke-width': 5
         },
         createElement: function (x, y) {
-            return this.handlers['canvas'].line(x, y, x, y);
+            return this.handlers.canvas.line(x, y, x, y);
         },
         render: function (item) {
             this.activeElement.attr('x1', this.activeElement.pStart.x);
@@ -482,7 +486,7 @@ app.controller('DrawController', ['$scope', 'Drawer', '$sce', 'DrawSettings', fu
             var path, arrow, marker;
 
 
-            path = this.handlers['canvas'].path("M0,0 L0,6 L6,3 L0,0").attr({
+            path = this.handlers.canvas.path("M0,0 L0,6 L6,3 L0,0").attr({
                 'fill': 'color'
             });
             marker = path.marker(0, 0, 6, 6, 3, 3);
@@ -510,7 +514,7 @@ app.controller('DrawController', ['$scope', 'Drawer', '$sce', 'DrawSettings', fu
         attrs: _defaultAttrs,
         name: '<i class="fa fa-paint-brush"></i> Draw',
         createElement: function (x, y) {
-            var element = this.handlers['canvas'].path(Snap.format('M{x},{y}', {x: x, y: y}));
+            var element = this.handlers.canvas.path(Snap.format('M{x},{y}', {x: x, y: y}));
             element.points = [[x, y]];
 
             return element;
@@ -568,16 +572,17 @@ app.controller('DrawController', ['$scope', 'Drawer', '$sce', 'DrawSettings', fu
             'fill': 'color'
         },
         createElement: function (x, y) {
-            return this.handlers['canvas'].text(x, y, '');
+            return this.handlers.canvas.text(x, y, '');
         },
         events: {
             mouseup: function (x, y) {
-                $scope.$apply(function () {
-                    $scope.textLayer.isShow = true;
-                    $scope.textLayer.top = y;
-                    $scope.textLayer.left = x;
-                    $scope.textLayer.focus = true;
-                    $scope.textLayerData = '';
+                var scope = this.handlers.scope;
+                scope.$apply(function () {
+                    scope.textLayer.isShow = true;
+                    scope.textLayer.top = y;
+                    scope.textLayer.left = x;
+                    scope.textLayer.focus = true;
+                    scope.textLayerData = '';
                 });
             },
             mousedown: function (x, y) {},
@@ -591,11 +596,12 @@ app.controller('DrawController', ['$scope', 'Drawer', '$sce', 'DrawSettings', fu
             },
         },
         render: function () {
-            if ($scope.textlayerData.trim() == '') {
+            var scope = this.handlers.scope;
+            if (scope.textlayerData.trim() == '') {
                 this.activeElement.remove();
                 this.elements.splice(this.elements.length - 1, 1);
             } else {
-                var text = $scope.textlayerData.replace(/<\/div>/g, '').replace(/<div>/g, "<br>").replace(/&nbsp;/g, ' ');
+                var text = scope.textlayerData.replace(/<\/div>/g, '').replace(/<div>/g, "<br>").replace(/&nbsp;/g, ' ');
 
                 text = text.split("<br>");
                 this.activeElement.attr('text', text);
@@ -604,12 +610,12 @@ app.controller('DrawController', ['$scope', 'Drawer', '$sce', 'DrawSettings', fu
                     dy: "1.4em",
                     x: this.activeElement.attr('x')
                 });
-                $scope.textlayerData = '';
+                scope.textlayerData = '';
             }
 
-            if ($scope.textLayer.focus) {
-                $scope.$apply(function () {
-                    $scope.textLayer.focus = false;
+            if (scope.textLayer.focus) {
+                scope.$apply(function () {
+                    scope.textLayer.focus = false;
                 });
             }
 
