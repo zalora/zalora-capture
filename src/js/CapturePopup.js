@@ -96,7 +96,7 @@ popup.controller('MainController', ['$scope', 'JiraAPIs', function ($scope, Jira
             }, function (resp) {
                 console.log('[setRecordingTab]', resp);
                 if (resp) {
-                    CaptureStorage.saveData({recoding_start_url: tab[0].url});
+                    CaptureStorage.saveData({recordingStartUrl: tab[0].url});
                     $scope.startRecord();
                 }
 

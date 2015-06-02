@@ -49,7 +49,7 @@ angular.module('Jira', []).factory('JiraAPIs', ['$http', '$filter', function($ht
         });
     },
     _parseAPIData = function (data, type) {
-        if (type == 'issue_types') {
+        if (type == 'issueTypes') {
             return data.projects[0].issuetypes;
         }
         return data;
@@ -68,10 +68,10 @@ angular.module('Jira', []).factory('JiraAPIs', ['$http', '$filter', function($ht
             return;
         }
 
-        CaptureStorage.getData('source_url', function (results) {
+        CaptureStorage.getData('sourceUrl', function (results) {
             var URLs, screenRes, data;
 
-            URLs = results.source_url;
+            URLs = results.sourceUrl;
             screenRes = window.screen.width + 'x' + window.screen.height;
 
             data = "\n\n\n *Zalora Capture Environment Information* \n- URL: " + URLs + "\n- Screen Resolution: " + screenRes + "\n- User Agent: " + window.navigator.userAgent;
@@ -96,7 +96,7 @@ angular.module('Jira', []).factory('JiraAPIs', ['$http', '$filter', function($ht
                 }
             };
             // console.log(data); return;
-            $http.post(_data.server + _configs.APIs.create_issue, data).success(function (resp) {
+            $http.post(_data.server + _configs.APIs.createIssue, data).success(function (resp) {
                 onSuccess(resp);
             }).error(function (resp) {
                 onError(resp);
@@ -133,7 +133,7 @@ angular.module('Jira', []).factory('JiraAPIs', ['$http', '$filter', function($ht
         return new Blob([uInt8Array], {type: contentType});
     },
     _attachToIssue = function (key, data, fileName, onSuccess, onError) {
-        var url = _data.server + _configs.APIs.attach_to_issue.replace('{issueId}', key);
+        var url = _data.server + _configs.APIs.attachToIssue.replace('{issueId}', key);
 
         var fd = new FormData();
 
@@ -168,7 +168,7 @@ angular.module('Jira', []).factory('JiraAPIs', ['$http', '$filter', function($ht
         _attachToIssue(key, data, 'Recording Data %s.json', onSuccess, onError);
     },
     _logOut = function (onSuccess, onError) {
-        $http.delete(_data.server + _configs.APIs.log_out).success(function (resp) {
+        $http.delete(_data.server + _configs.APIs.logOut).success(function (resp) {
             onSuccess(resp);
         });
     },
@@ -205,10 +205,10 @@ angular.module('Jira', []).factory('JiraAPIs', ['$http', '$filter', function($ht
         _basicGet(_configs.APIs.info.projects, onSuccess, onError);
     },
     _getIssues = function (projectId, onSuccess, onError) {
-        _basicGet(_configs.APIs.search_issue.replace('{projectId}', projectId), onSuccess, onError);
+        _basicGet(_configs.APIs.searchIssue.replace('{projectId}', projectId), onSuccess, onError);
     },
     _getAttachments = function (issueId, onSuccess, onError) {
-        _basicGet(_configs.APIs.get_attachment.replace('{issueId}', issueId), onSuccess, onError);
+        _basicGet(_configs.APIs.getAttachment.replace('{issueId}', issueId), onSuccess, onError);
     },
     _getScripts = function (issueId, onSuccess, onError) {
         _getAttachments(issueId, function (resp) {

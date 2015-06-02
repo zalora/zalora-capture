@@ -98,8 +98,8 @@ var CaptureBackground = (function (CaptureConfigs, CaptureStorage, rpfUtils) {
             }
 
             _tabs.source = tab[0].id;
-            CaptureStorage.saveData({'source_url': tab[0].url});
-            console.log('source_url', tab[0].url);
+            CaptureStorage.saveData({'sourceUrl': tab[0].url});
+            console.log('sourceUrl', tab[0].url);
 
             // create a screenshot then create new App tab
             async.series([_createScreenshot, function (callback) {

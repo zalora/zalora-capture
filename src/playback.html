@@ -40,15 +40,15 @@
             <span>{{loading}}</span>
         </div>
 
-        <div id="playback-box">
-            <div class="form-group" ng-show="scriptKeys.length" ng-cloak>
+        <div id="playback-box" ng-show="scriptKeys.length && !loading" ng-cloak>
+            <div class="form-group">
                 <label for="actions">User actions <font color="red">*</font></label>
                 <div prism>
                     <pre class="line-numbers" data-line="{{currentStep}}"><code class="language-actions">{{actions}}</code></pre>
                 </div>
             </div>
 
-            <div class="form-group" ng-show="scriptKeys.length" ng-cloak>
+            <div class="form-group">
                 <label for="actions">Start URL</label>
                 <p>
                     <a href="{{startUrl}}" target="__blank">{{startUrl}}</a>
@@ -56,10 +56,10 @@
             </div>
 
             <div class="form-group">
-                <button type="button" class="btn btn-primary" ng-show="scriptKeys.length && !isPlaying" ng-cloak ng-click="startPlayback()">
+                <button type="button" class="btn btn-primary" ng-show="!isPlaying" ng-cloak ng-click="startPlayback()">
                     <i class="fa fa-play"></i> Playback
                 </button>
-                <button type="button" class="btn btn-primary btn-danger" ng-show="scriptKeys.length && isPlaying" ng-cloak ng-click="stopPlayback()">
+                <button type="button" class="btn btn-primary btn-danger" ng-show="isPlaying" ng-cloak ng-click="stopPlayback()">
                     <i class="fa fa-square"></i> Stop
                 </button>
             </div>

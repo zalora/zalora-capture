@@ -243,10 +243,10 @@ app.factory('Drawer', ['JiraAPIs', 'Tool', function (JiraAPIs, Tool) {
                 }
             }
         },
-        b64_to_utf8: function (str) {
+        base64ToUtf8: function (str) {
             return decodeURIComponent(window.escape(window.atob(str)));
         },
-        utf8_to_b64: function (str) {
+        utf8ToBase64: function (str) {
             return window.btoa(window.unescape(encodeURIComponent(str)));
         },
         exportImage: function (callback) {
@@ -261,7 +261,7 @@ app.factory('Drawer', ['JiraAPIs', 'Tool', function (JiraAPIs, Tool) {
 
             var img = document.createElement( "img" );
 
-            var data = this.utf8_to_b64(svgData);
+            var data = this.utf8ToBase64(svgData);
             // var data = btoa(svgData); using in function for only a-zA-Z0-9 character
             img.setAttribute("src", "data:image/svg+xml;base64," + data);
 
@@ -707,7 +707,7 @@ app.controller('MainController', ['$scope', 'JiraAPIs', 'CaptureListener', 'Draw
         async.parallel({
             issueId: function (callback) {
                 // return callback(null, 'DP-74');
-                JiraAPIs.createIssue($scope.selected.projects, $scope.selected.issue_types, $scope.selected.priorities, $scope.summary, $scope.description, $scope.includeEnv, function (resp) {
+                JiraAPIs.createIssue($scope.selected.projects, $scope.selected.issueTypes, $scope.selected.priorities, $scope.summary, $scope.description, $scope.includeEnv, function (resp) {
 
                     // TODO: display success message
                     $scope.newIssue = resp;
@@ -742,8 +742,8 @@ app.controller('MainController', ['$scope', 'JiraAPIs', 'CaptureListener', 'Draw
                     });
                 },
                 startUrl: function (callback) {
-                    CaptureStorage.getData('recoding_start_url', function (resp) {
-                        callback(null, resp.recoding_start_url);
+                    CaptureStorage.getData('recordingStartUrl', function (resp) {
+                        callback(null, resp.recordingStartUrl);
                     });
                 },
                 recordingData: function (callback) { // fetch recording data

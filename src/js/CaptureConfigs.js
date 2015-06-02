@@ -8,7 +8,7 @@
 
 var CaptureConfigs = (function () {
     var _configs = {
-        liveReload: false,
+        liveReload: true,
         canvas: {
             colors: ['#c0392b', '#d35400', '#f39c12', '#f1c40f', '#16a085', '#2cc36b', '#2980b9', '#8e44ad', '#2c3e50', '#ecf0f1']
         },
@@ -17,15 +17,15 @@ var CaptureConfigs = (function () {
             info: {
                 projects: '/rest/api/2/project',
                 priorities: '/rest/api/2/priority',
-                issue_types: '/rest/api/2/issuetype',
-                // issue_types: '/rest/api/2/issue/createmeta'
+                issueTypes: '/rest/api/2/issuetype',
+                // issueTypes: '/rest/api/2/issue/createmeta'
             },
             search: '/rest/api/2/search',
-            search_issue: '/rest/api/2/search?jql=project={projectId}&maxResults=1000&fields=id,key,summary',
-            get_attachment: '/rest/api/2/issue/{issueId}?fields=attachment',
-            create_issue: '/rest/api/2/issue',
-            attach_to_issue: '/rest/api/2/issue/{issueId}/attachments',
-            log_out: '/rest/auth/latest/session',
+            searchIssue: '/rest/api/2/search?jql=project={projectId}&maxResults=1000&fields=id,key,summary',
+            getAttachment: '/rest/api/2/issue/{issueId}?fields=attachment',
+            createIssue: '/rest/api/2/issue',
+            attachToIssue: '/rest/api/2/issue/{issueId}/attachments',
+            logOut: '/rest/auth/latest/session',
         },
         app: {
             url: 'src/app.html'
