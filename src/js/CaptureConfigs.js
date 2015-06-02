@@ -51,13 +51,15 @@ var CaptureConfigs = (function () {
         }
     },
     _initLiveReload = function () {
-        document.write('<script src="http://' + (location.host || 'localhost').split(':')[0] + ':35729/livereload.js?snipver=1"></' + 'script>');
+        document.write('<script src="http://localhost:35729/livereload.js?snipver=1"></' + 'script>');
     },
     _init = function () {
         if (_configs.liveReload) {
             _initLiveReload();
         }
     };
+
+    _init();
 
     return {
         get: function (group, key) {
@@ -77,3 +79,4 @@ var CaptureConfigs = (function () {
         }
     };
 })();
+
