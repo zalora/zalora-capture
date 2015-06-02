@@ -114,19 +114,34 @@ playback.controller('MainController', ['$scope', 'JiraAPIs', 'PlaybackListener',
     };
 
     $scope.startPlayback = function () {
-        $scope.isPlaying = true;
-        $rootScope.playbackStatus = [];
-        $rootScope.currentStep = null;
-        chrome.extension.sendRequest({
-            command: 'checkPlaybackOptionAndRun',
-            params: {
-                method: 'all',
-                startUrl: $scope.playbackData.startUrl,
-                scripts: $scope.playbackData.script.join("\n"),
-                infoMap: $scope.playbackData.infoMap,
-                datafile: $scope.playbackData.dataFile.join("\n"),
-                userLib: ''
+        chrome.runtime.sendMessage({
+            type: 'isRecording',
+            data: {}
+        }, function (isRecording) {
+            $rootScope.$apply(function () {
+                $rootScope.error = isRecording ? "Can not play back during recording." : null;
+                $rootScope.playbackStatus = [];
+                $rootScope.currentStep = null;
+            });
+
+            if (isRecording) {
+                return false;
             }
+
+
+            $scope.isPlaying = true;
+            chrome.extension.sendRequest({
+                command: 'checkPlaybackOptionAndRun',
+                params: {
+                    method: 'all',
+                    startUrl: $scope.playbackData.startUrl,
+                    scripts: $scope.playbackData.script.join("\n"),
+                    infoMap: $scope.playbackData.infoMap,
+                    datafile: $scope.playbackData.dataFile.join("\n"),
+                    userLib: ''
+                }
+            });
+
         });
     };
 
