@@ -30,5 +30,5 @@
     "notifications",
     "<all_urls>"
   ],
-  "content_security_policy": "script-src 'self' 'unsafe-eval' https://d1n0x3qji82z53.cloudfront.net; object-src 'self'"
+  "content_security_policy": "script-src 'self' 'unsafe-eval' http://localhost:35729 https://d1n0x3qji82z53.cloudfront.net; object-src 'self'"
 }

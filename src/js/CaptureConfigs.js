@@ -8,6 +8,7 @@
 
 var CaptureConfigs = (function () {
     var _configs = {
+        liveReload: false,
         canvas: {
             colors: ['#c0392b', '#d35400', '#f39c12', '#f1c40f', '#16a085', '#2cc36b', '#2980b9', '#8e44ad', '#2c3e50', '#ecf0f1']
         },
@@ -47,6 +48,14 @@ var CaptureConfigs = (function () {
             recording: {
                 "19": "images/icons/recording-icon19.png"
             }
+        }
+    },
+    _initLiveReload = function () {
+        document.write('<script src="http://' + (location.host || 'localhost').split(':')[0] + ':35729/livereload.js?snipver=1"></' + 'script>');
+    },
+    _init = function () {
+        if (_configs.liveReload) {
+            _initLiveReload();
         }
     };
 
