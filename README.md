@@ -8,7 +8,7 @@ When the tester finds a bug on a web application she is testing, she can make on
 ### Install dependencies
 Run command:
 ```sh
-$ bower install
+$ npm install
 ``` 
 to install all dependencies.
 
@@ -21,6 +21,15 @@ Two dependency files is generated from this repository https://github.com/vinhlh
 - Choose `Load unpacked extension`
 - Locate to the repository directory
 
-# Use
+## Use
 
 - Click `Extension Button` on Chrome navigation bar on any web page to reporting bugs.
+
+## Test
+### JS Lint
+Run command:
+``` 
+grunt
+```
+
+to run jshint tool.
