@@ -7,5 +7,8 @@
     "grunt-contrib-jshint": "*",
     "grunt-contrib-nodeunit": "*",
     "grunt-contrib-uglify": "*"
+  },
+  "scripts": {
+    "postinstall": "bower install"
   }
 }
