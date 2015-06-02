@@ -3,7 +3,7 @@
  * @author VinhLH
  */
 
-"use strict";
+'use strict';
 
 var app = angular.module('CaptureApp', ['Jira']);
 
@@ -49,8 +49,7 @@ app.factory('CaptureListener', ['JiraAPIs', 'CaptureSender', '$rootScope', funct
         console.log('[app] comming request > ', request, sender);
         sendResponse('[app] received request!');
 
-        if (typeof request.type === 'undefined'
-            || typeof _actions[request.type] === 'undefined') {
+        if (typeof request.type === 'undefined' || typeof _actions[request.type] === 'undefined') {
             return false;
         }
 
@@ -91,7 +90,7 @@ app.factory('DrawSettings', [function () {
             return _settings[setting];
         }
     };
-}])
+}]);
 
 app.factory('Tool', ['DrawSettings', function (DrawSettings) {
     var Tool = function (params, handlers) {
@@ -198,8 +197,7 @@ app.factory('Tool', ['DrawSettings', function (DrawSettings) {
 
     Tool.prototype.isSamePoint = function () {
         console.log(this.activeElement.pStart, this.activeElement.pEnd);
-        return this.activeElement.pStart.x == this.activeElement.pEnd.x
-            && this.activeElement.pStart.y == this.activeElement.pEnd.y;
+        return this.activeElement.pStart.x == this.activeElement.pEnd.x && this.activeElement.pStart.y == this.activeElement.pEnd.y;
     };
 
     return Tool;
@@ -236,16 +234,6 @@ app.factory('Drawer', ['JiraAPIs', 'Tool', function (JiraAPIs, Tool) {
         getActiveTool: function () {
             return _tools[_activeTool];
         },
-        setSetting: function (key, value) {
-            _settings[key] = value;
-        },
-        getSetting: function (key) {
-            if (typeof _settings[key] !== 'undefined') {
-                return _settings[key];
-            }
-
-            return null;
-        },
         reset: function () {
             for(var toolKey in _tools) {
                 var tool = _tools[toolKey];
@@ -256,10 +244,10 @@ app.factory('Drawer', ['JiraAPIs', 'Tool', function (JiraAPIs, Tool) {
             }
         },
         b64_to_utf8: function (str) {
-            return decodeURIComponent(escape(window.atob(str)));
+            return decodeURIComponent(window.escape(window.atob(str)));
         },
         utf8_to_b64: function (str) {
-            return window.btoa(unescape(encodeURIComponent(str)));
+            return window.btoa(window.unescape(encodeURIComponent(str)));
         },
         exportImage: function (callback) {
             var svg = document.querySelector("svg"),
@@ -344,22 +332,27 @@ app.directive('captureCanvas', ['Drawer', function (Drawer) {
             $scope.canvas = Snap('#draw-canvas');
 
             var _eventHanders = function (eventName, x, y) {
-                if (Drawer.getActiveTool()
-                    && typeof Drawer.getActiveTool()[eventName] !== 'undefined') {
+                if (Drawer.getActiveTool() && typeof Drawer.getActiveTool()[eventName] !== 'undefined') {
                     Drawer.getActiveTool()[eventName](x, y);
                 }
             },
             _convertCoords = function (event) {
                 var data = {};
                 if (event.target.nodeName == 'text') {
-                    data.x = event.offsetX + event.target.offsetLeft;
-                    data.y = event.offsetY + event.target.offsetTop;
+                    data = {
+                        x: event.offsetX + event.target.offsetLeft,
+                        y: event.offsetY + event.target.offsetTop
+                    };
                 } else if (event.target.nodeName == 'tspan') {
-                    data.x = event.offsetX + event.target.offsetLeft;
-                    data.y = event.target.offsetTop;
+                    data = {
+                        x: event.offsetX + event.target.offsetLeft,
+                        y: event.target.offsetTop
+                    };
                 } else {
-                    data.x = event.offsetX,
-                    data.y = event.offsetY;
+                    data = {
+                        x: event.offsetX,
+                        y: event.offsetY
+                    };
                 }
 
                 return data;
@@ -597,7 +590,7 @@ app.controller('DrawController', ['$scope', 'Drawer', '$sce', 'DrawSettings',
         },
         render: function () {
             var scope = this.handlers.scope;
-            if (scope.textlayerData.trim() == '') {
+            if (scope.textlayerData.trim() === '') {
                 this.activeElement.remove();
                 this.elements.splice(this.elements.length - 1, 1);
             } else {
@@ -689,16 +682,16 @@ app.controller('MainController', ['$scope', 'JiraAPIs', 'CaptureListener', 'Draw
         $scope.includeEnv = true;
     },
     _removeInfoMapRedundant = function(infoMap, script, screenshots) {
-        if (!infoMap || !infoMap['steps'] || !infoMap['elems']) {
+        if (!infoMap || !infoMap.steps || !infoMap.elems) {
             return;
         }
 
-        var steps = infoMap['steps'];
+        var steps = infoMap.steps;
         for (var stepId in steps) {
             if (script.indexOf(stepId) == -1) {
-                var elemId = steps[stepId]['elemId'];
-                if (infoMap['elems'][elemId]) {
-                    delete infoMap['elems'][elemId];
+                var elemId = steps[stepId].elemId;
+                if (infoMap.elems[elemId]) {
+                    delete infoMap.elems[elemId];
                 }
                 if (screenshots[stepId]) {
                     delete screenshots[stepId];
@@ -714,7 +707,7 @@ app.controller('MainController', ['$scope', 'JiraAPIs', 'CaptureListener', 'Draw
         async.parallel({
             issueId: function (callback) {
                 // return callback(null, 'DP-74');
-                JiraAPIs.createIssue($scope.selected['projects'], $scope.selected['issue_types'], $scope.selected['priorities'], $scope.summary, $scope.description, $scope.includeEnv, function (resp) {
+                JiraAPIs.createIssue($scope.selected.projects, $scope.selected.issue_types, $scope.selected.priorities, $scope.summary, $scope.description, $scope.includeEnv, function (resp) {
 
                     // TODO: display success message
                     $scope.newIssue = resp;
@@ -750,7 +743,7 @@ app.controller('MainController', ['$scope', 'JiraAPIs', 'CaptureListener', 'Draw
                 },
                 startUrl: function (callback) {
                     CaptureStorage.getData('recoding_start_url', function (resp) {
-                        callback(null, resp['recoding_start_url']);
+                        callback(null, resp.recoding_start_url);
                     });
                 },
                 recordingData: function (callback) { // fetch recording data
@@ -768,6 +761,7 @@ app.controller('MainController', ['$scope', 'JiraAPIs', 'CaptureListener', 'Draw
                                 script: scripts,
                                 infoMap: resp.infoMap,
                                 screenshots: resp.screenshots,
+                                dataFile: resp.dataFile
                             });
                         } else {
                             callback(null, null);
@@ -782,7 +776,7 @@ app.controller('MainController', ['$scope', 'JiraAPIs', 'CaptureListener', 'Draw
                     });
                 } else {
                     $scope.loading = 'Uploading user actions data..';
-                    finalResults.recordingData['startUrl'] = finalResults.startUrl;
+                    finalResults.recordingData.startUrl = finalResults.startUrl;
 
                     JiraAPIs.attachRecordingData(finalResults.issueId, finalResults.recordingData, function (resp) {
                         $scope.loading = false;

@@ -4,7 +4,7 @@
  * @author VinhLH
  */
 
-"use strict";
+'use strict';
 
 var CaptureConfigs = (function () {
     var _configs = {

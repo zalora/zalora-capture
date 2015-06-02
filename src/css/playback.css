@@ -7,3 +7,12 @@
 form {
     padding: 15px;
 }
+
+#playback-box {
+    background: #f5f6f7;
+    padding: 20px;
+    border-radius: 3px;
+    border: 1px solid #ddd;
+    /*height: 250px;*/
+    /*overflow-y: scroll;*/
+}

@@ -4,26 +4,37 @@
  * @author VinhLH
  */
 
-"use strict";
+'use strict';
 
 var CaptureBackground = (function (CaptureConfigs, CaptureStorage, rpfUtils) {
     var _configs = {
-        app_url: CaptureConfigs.get('app', 'url')
+        appUrl: CaptureConfigs.get('app', 'url')
     },
     _tabs = {
         source: null,
         tab: null
     },
-    _screenshot = null;
+    _screenshot = null,
+    _playbackWindowId = null,
+    _playbackTabId = null;
 
     var _init = function () {
         chrome.runtime.onMessage.addListener(_onMessage);
         // chrome.browserAction.onClicked.addListener(_start);
     },
+    _createPlaybackWindow = function () {
+        var playbackPopupOpts = CaptureConfigs.get('playback');
+        chrome.windows.create(playbackPopupOpts, function (window) {
+            _playbackWindowId = window.id;
+            chrome.tabs.query({windowId: window.id}, function (tabs) {
+                _playbackTabId = tabs[0].id;
+                console.log('tabid', _playbackTabId);
+            });
+        });
+    },
     _onMessage = function (request, sender, sendResponse) {
         console.log('[background] comming request > ', request, sender);
-        if (typeof request.type === 'undefined'
-            || typeof _actions[request.type] === 'undefined') {
+        if (typeof request.type === 'undefined' || typeof _actions[request.type] === 'undefined') {
             return false;
         }
 
@@ -61,9 +72,23 @@ var CaptureBackground = (function (CaptureConfigs, CaptureStorage, rpfUtils) {
         },
         isRecording: function () {
             return rpfUtils.getInstance().isRecording();
+        },
+        initPlaybackWindow: function (data) {
+            if (_playbackWindowId) {
+                chrome.windows.get(_playbackWindowId, function (window) {
+                    if (!chrome.runtime.lastError) {
+                        chrome.windows.update(_playbackWindowId, {focused: true});
+                    } else {
+                        _createPlaybackWindow();
+                    }
+                });
+            } else {
+                _createPlaybackWindow();
+            }
         }
     },
     _start = function () {
+        console.log('fuckk');
         chrome.tabs.query({active: true, currentWindow: true}, function (tab) {
             console.log('source tab > ', tab);
 
@@ -86,7 +111,7 @@ var CaptureBackground = (function (CaptureConfigs, CaptureStorage, rpfUtils) {
     _createNewTab = function (index) {
         chrome.tabs.create({
             index: index,
-            url: _configs['app_url']
+            url: _configs.appUrl
         }, function (tab) {
             console.log('app tab > ', tab.id);
             _tabs.app = tab.id;
@@ -120,11 +145,15 @@ var CaptureBackground = (function (CaptureConfigs, CaptureStorage, rpfUtils) {
             callback(null, image);
             _screenshot = image;
         });
+    },
+    _getPlaybackTabId = function () {
+        return _playbackTabId;
     };
 
     return {
         init: _init,
-        start: _start
+        start: _start,
+        getPlaybackTabId: _getPlaybackTabId
     };
 })(CaptureConfigs, CaptureStorage, rpf.Utils);
 

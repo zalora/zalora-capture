@@ -1,17 +1,23 @@
+'use strict';
+
 angular.module('ngPrism', []).
     directive('prism', [function() {
         return {
             restrict: 'A',
             link: function ($scope, element, attrs) {
-                element.ready(function() {
-                    console.log(element[0]);
-                    Prism.highlightElement(element[0]);
+                var el = element.find('pre');
+                el.ready(function() {
+                    Prism.highlightAll();
                 });
 
                 $scope.$watch('actions', function () {
-                    Prism.highlightElement(element[0]);
+                    Prism.highlightAll();
+                });
+
+                $scope.$watch('currentStep', function () {
+                    Prism.highlightAll();
                 });
             }
-        }
+        };
     }]
 );

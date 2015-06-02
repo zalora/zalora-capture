@@ -4,7 +4,7 @@
  * @author VinhLH
  */
 
-"use strict";
+'use strict';
 
 var popup = angular.module('CapturePopup', ['Jira']);
 
@@ -34,6 +34,9 @@ popup.controller('MainController', ['$scope', 'JiraAPIs', function ($scope, Jira
                                     $scope.selected[key] = data[0].id;
                                 }
                             });
+                        }, function () {
+                            $scope.loading = null;
+                            $scope.user = null;
                         });
                     }
                 });
@@ -99,7 +102,7 @@ popup.controller('MainController', ['$scope', 'JiraAPIs', function ($scope, Jira
 
                 $scope.$apply(function () {
                     $scope.alert = !resp;
-                })
+                });
             });
         });
     };
@@ -126,16 +129,23 @@ popup.controller('MainController', ['$scope', 'JiraAPIs', function ($scope, Jira
     };
 
     $scope.reportBug = function () {
+        console.log('reportBug')
         chrome.runtime.sendMessage({
             type: 'reportBug'
         });
     };
 
-    $scope.initPlaybackWindow = function () {
-        var playbackPopupOpts = CaptureConfigs.get('playback');
-
+    var _createWindow = function (playbackPopupOpts) {
         chrome.windows.create(playbackPopupOpts, function (window) {
+            console.log('create', window.id);
+            CaptureStorage.saveData({playbackWindowId : window.id});
+        });
+    };
 
+    $scope.initPlaybackWindow = function () {
+        chrome.runtime.sendMessage({
+            type: 'initPlaybackWindow',
+            data: {}
         });
     };
 

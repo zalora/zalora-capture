@@ -12023,6 +12023,7 @@ rpf.Rpf.prototype.focusRpf = function() {
 rpf.Utils = function() {
   this.rpf_ = rpf.Rpf.getInstance();
   this.infoMap = {};
+  this.dataFile = [];
   this.screenshotMgr_ = new bite.console.Screenshot
 };
 goog.exportSymbol("rpf.Utils", rpf.Utils);
@@ -12063,12 +12064,11 @@ rpf.Utils.prototype.getRecordingData = function() {
   for(var a = this.getScreenshotManager(), b = a.getScreenshots(), a = a.getCmdIndices(), c = {}, d = 0;d < b.length;d++) {
     c[a[d]] = b[d]
   }
-  return{infoMap:this.infoMap, screenshots:c}
+  return{infoMap:this.infoMap, screenshots:c, dataFile:this.dataFile}
 };
 rpf.Utils.prototype.isRecording = function() {
   return this.rpf_.getEventsManager().getRecorder().isRecording()
 };
-var rpfUtils = rpf.Utils.getInstance();
 rpf.EventsManager.prototype.sendMessageToConsole_ = function(a) {
   if(a.command) {
     console.log(a.command, a.params);
@@ -12079,11 +12079,18 @@ rpf.EventsManager.prototype.sendMessageToConsole_ = function(a) {
         console.log(b.getScreenshotManager().getGeneratedCmds());
         break;
       case Bite.Constants.UiCmds.ADD_NEW_COMMAND:
-        a.params.cmdMap && (bite.console.Helper.assignInfoMap(b.infoMap, a.params.cmdMap), b.getScreenshotManager().addIndex(a.params.cmdMap.id));
+        a.params.cmdMap && (bite.console.Helper.assignInfoMap(b.infoMap, a.params.cmdMap), b.getScreenshotManager().addIndex(a.params.cmdMap.id), a.params.dCmd && b.dataFile.push(a.params.dCmd));
         break;
       case Bite.Constants.UiCmds.ADD_SCREENSHOT:
-        b.getScreenshotManager().addScreenShot(a.params.dataUrl, a.params.iconUrl)
+        b.getScreenshotManager().addScreenShot(a.params.dataUrl, a.params.iconUrl);
+        break;
+      case Bite.Constants.UiCmds.UPDATE_PLAYBACK_STATUS:
+        (b = CaptureBackground.getPlaybackTabId()) && chrome.tabs.sendMessage(b, {type:"updatePlaybackStatus", data:a.params});
+        break;
+      case Bite.Constants.UiCmds.UPDATE_CURRENT_STEP:
+        (b = CaptureBackground.getPlaybackTabId()) && chrome.tabs.sendMessage(b, {type:"updateCurrentStep", data:a.params})
     }
   }
 };
+var rpfUtils = rpf.Utils.getInstance();
 

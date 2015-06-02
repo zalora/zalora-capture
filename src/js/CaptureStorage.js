@@ -4,29 +4,28 @@
  * @author VinhLH
  */
 
-"use strict";
+'use strict';
 
 var CaptureStorage = (function () {
     var _configs = CaptureConfigs.get('storage');
 
     var _addDataPrefix = function (data) {
+        var results, key, value;
         if (typeof data == 'string') {
-            return _configs['prefix'] + data;
+            return _configs.prefix + data;
         } else if (Array.isArray(data)) {
-            var results = [];
-
-            for(var key in data) {
-                var value = data[key];
-                results.push(_configs['prefix'] + value);
+            results = [];
+            for(key in data) {
+                value = data[key];
+                results.push(_configs.prefix + value);
             }
 
             return results;
         } else if (typeof data === 'object' && data !== null) {
-            var results = {};
-
-            for(var key in data) {
-                var value = data[key];
-                results[_configs['prefix'] + key] = value;
+            results = {};
+            for(key in data) {
+                value = data[key];
+                results[_configs.prefix + key] = value;
             }
 
             return results;
@@ -38,7 +37,7 @@ var CaptureStorage = (function () {
 
         for(var key in data) {
             var value = data[key];
-            results[key.replace(_configs['prefix'], '')] =  value;
+            results[key.replace(_configs.prefix, '')] =  value;
         }
 
         return results;
@@ -46,7 +45,9 @@ var CaptureStorage = (function () {
     _saveData = function (data, callback) {
         data = _addDataPrefix(data);
         chrome.storage.sync.set(data, function (result) {
-            typeof callback !== 'undefined' && callback(result);
+            if (typeof callback !== 'undefined') {
+                callback(result);
+            }
         });
     },
     _getData = function (key, callback) {
@@ -54,12 +55,14 @@ var CaptureStorage = (function () {
         chrome.storage.sync.get(key, function (result) {
             result = _removeDataPrefix(result);
 
-            typeof callback !== 'undefined' && callback(result);
+            if (typeof callback !== 'undefined') {
+                callback(result);
+            }
         });
     };
 
     return {
         getData: _getData,
         saveData: _saveData
-    }
+    };
 })();
