@@ -78,6 +78,8 @@ playback.controller('MainController', ['$scope', 'JiraAPIs', 'PlaybackListener',
     };
 
     $scope.getScripts = function () {
+        $scope.stopPlayback();
+
         $scope.loading = 'Fetching script list..';
         $scope.scripts = null;
         $scope.scriptKeys = null;
