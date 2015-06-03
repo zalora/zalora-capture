@@ -16,3 +16,7 @@ form {
     /*height: 250px;*/
     /*overflow-y: scroll;*/
 }
+
+#playback-box pre {
+    overflow-y: scroll;
+}
