@@ -103,12 +103,12 @@ playback.controller('MainController', ['$scope', 'JiraAPIs', 'PlaybackListener',
         $scope.startUrl = null;
 
         JiraAPIs.getJsonFromUrl($scope.scripts[$scope.selected.script].content, function (resp) {
+            console.log('scripts', resp);
             $scope.loading = null;
             $scope.actions = resp.script.join("\n").trim();
             $scope.startUrl = resp.startUrl;
 
             $scope.playbackData = resp;
-            console.log(resp);
         });
     };
 
