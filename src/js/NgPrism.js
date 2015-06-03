@@ -39,7 +39,7 @@ angular.module('ngPrism', []).directive('nagPrism', ['$rootScope', function($roo
             console.log(scope);
             var codeElement = element.find("code")[0];
             scope.$watch('source', function() {
-                console.log('source change');
+                element.attr('data-line', null);
                 Prism.highlightElement(codeElement);
             });
 
