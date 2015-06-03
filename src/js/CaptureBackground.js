@@ -120,7 +120,7 @@ var CaptureBackground = (function (CaptureConfigs, CaptureStorage, rpfUtils) {
     },
     _switchToTab = function (tab) {
         chrome.tabs.update(tab.id, {selected: true});
-        chrome.tabs.sendMessage(_tabs.app, {type: 'updateScreenshot', _screenshot}, null);
+        chrome.tabs.sendMessage(_tabs.app, {type: 'updateScreenshot', data: _screenshot}, null);
     },
     _initAppTab = function (index) {
         console.log('_initAppTab');

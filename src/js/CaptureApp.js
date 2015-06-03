@@ -31,6 +31,8 @@ app.factory('CaptureListener', ['JiraAPIs', 'CaptureSender', '$rootScope', funct
     _actions = {
         updateScreenshot: function (data) {
             console.log('updateScreenshot', data);
+            console.log('window.devicePixelRatio', window.devicePixelRatio);
+
             var image;
 
             if (_svgImage) {
