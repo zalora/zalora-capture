@@ -10,6 +10,10 @@ body {
     height: 100%;
 }
 
+md-select,md-select-label {
+    width: 100%;
+}
+
 #main {
     position: fixed;
     top: 0;
@@ -177,8 +181,3 @@ body {
 #text-layer:active {
     outline: none;
 }
-
-.logout {
-    line-height: 34px;
-}
-

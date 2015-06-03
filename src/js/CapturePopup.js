@@ -6,40 +6,36 @@
 
 'use strict';
 
-var popup = angular.module('CapturePopup', ['Jira']);
+var popup = angular.module('CapturePopup', ['Jira', 'ngMaterial']);
 
 popup.controller('MainController', ['$scope', 'JiraAPIs', function ($scope, JiraAPIs) {
     var _init = function () {
         $scope.user = null;
+        $scope.server = CaptureConfigs.get('serverUrl');
         $scope.info = {};
         $scope.selected = {};
         $scope.loading = 'Checking your session..';
 
         // parse login info if available
-        CaptureStorage.getData(['server', 'username'], function (results) {
+        JiraAPIs.getCurUser($scope.server, function (resp) {
+            $scope.user = resp;
+            $scope.loading = null;
+
+            JiraAPIs.fetchAllAtlassianInfo(function (key, data) {
+                $scope.info[key] = data;
+
+                if (data.length) {
+                    $scope.selected[key] = data[0].id;
+                }
+            });
+        }, function () {
+            $scope.loading = null;
+            $scope.user = null;
+        });
+
+        CaptureStorage.getData(['username'], function (results) {
             if (results) {
-                angular.forEach(results, function(value, key){
-                    $scope[key] = value;
-
-                    // check login
-                    if (key == 'server') {
-                        JiraAPIs.getCurUser($scope.server, function (resp) {
-                            $scope.user = resp;
-                            $scope.loading = null;
-
-                            JiraAPIs.fetchAllAtlassianInfo(function (key, data) {
-                                $scope.info[key] = data;
-
-                                if (data.length) {
-                                    $scope.selected[key] = data[0].id;
-                                }
-                            });
-                        }, function () {
-                            $scope.loading = null;
-                            $scope.user = null;
-                        });
-                    }
-                });
+                $scope.username = results.username;
             }
         });
 

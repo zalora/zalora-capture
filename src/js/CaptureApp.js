@@ -20,7 +20,8 @@ app.config(['$httpProvider', function ($httpProvider) {
  */
 
 app.factory('CaptureListener', ['JiraAPIs', 'CaptureSender', '$rootScope', function (JiraAPIs, CaptureSender, $rootScope) {
-    var _canvas = Snap('#draw-canvas');
+    var _canvas = Snap('#draw-canvas'),
+        _svgImage = null;
 
     var _init = function () {
         chrome.runtime.onMessage.addListener(_onMessage);
@@ -29,25 +30,33 @@ app.factory('CaptureListener', ['JiraAPIs', 'CaptureSender', '$rootScope', funct
     },
     _actions = {
         updateScreenshot: function (data) {
-            var image = new Image();
+            console.log('updateScreenshot', data);
+            var image;
+
+            if (_svgImage) {
+                _svgImage.remove();
+            }
+
+            image = new Image();
             image.onload = function () {
-                _canvas.image(data, 0, 0, this.width, this.height);
-                _canvas.attr('width', this.width);
-                _canvas.attr('height', this.height);
+                _svgImage = _canvas.image(data, 0, 0, this.width, this.height);
+                _canvas.attr('width', this.width / window.devicePixelRatio);
+                _canvas.attr('height', this.height / window.devicePixelRatio);
+                _svgImage.attr('transform', 'scale(' + 1 / window.devicePixelRatio + ')');
             };
             image.src = data;
 
             CaptureSender.send('getUserActions', null, function (resp) {
                 console.log('[getUserActions]', resp);
                 $rootScope.$apply(function () {
-                    $rootScope.actions = resp.join('\n');
+                    $rootScope.actions = resp.length ? resp.join('\n') : '';
                 });
             });
         }
     },
     _onMessage = function (request, sender, sendResponse) {
         console.log('[app] comming request > ', request, sender);
-        sendResponse('[app] received request!');
+        // sendResponse('[app] received request!');
 
         if (typeof request.type === 'undefined' || typeof _actions[request.type] === 'undefined') {
             return false;

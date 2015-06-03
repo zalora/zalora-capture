@@ -29,6 +29,6 @@
     "commit": "3919b7a3077dfdb4b31cc4b485d70aab4a163a44"
   },
   "_source": "git://github.com/adobe-webplatform/Snap.svg.git",
-  "_target": "~0.4.1",
+  "_target": "*",
   "_originalSource": "snap.svg"
 }

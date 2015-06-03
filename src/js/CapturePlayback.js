@@ -26,7 +26,6 @@ playback.factory('PlaybackListener', ['$rootScope', function ($rootScope) {
     },
     _onMessage = function (request, sender, sendResponse) {
         console.log('[playback] comming request > ', request, sender);
-        sendResponse('[playback] received request!');
 
         if (typeof request.type === 'undefined' || typeof _actions[request.type] === 'undefined') {
             return false;

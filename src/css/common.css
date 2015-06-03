@@ -12,15 +12,17 @@
     padding-top: calc(50% - 55px);
 }
 
-.loading-box .fa {
-    font-size: 64px;
+.loading-box md-progress-circular {
     display: block;
-    margin-bottom: 10px;
+    margin: 0 auto;
+    margin-bottom: 30px;
     color: #f5f6f7;
 }
 
 .loading-box span {
     font-size: 14px;
+    margin-top: 20px;
+    display: inline-block;
 }
 
 .loading-text {
@@ -30,4 +32,16 @@
 
 [ng\:cloak], [ng-cloak], [data-ng-cloak], [x-ng-cloak], .ng-cloak, .x-ng-cloak {
   display: none !important;
+}
+
+.md-button {
+    padding: 0 15px;
+}
+
+a {
+    text-decoration: none;
+}
+
+a:focus {
+    outline: none;
 }

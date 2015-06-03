@@ -12,11 +12,11 @@ var CaptureBackground = (function (CaptureConfigs, CaptureStorage, rpfUtils) {
     },
     _tabs = {
         source: null,
-        tab: null
+        tab: null,
+        playback: null
     },
     _screenshot = null,
-    _playbackWindowId = null,
-    _playbackTabId = null;
+    _playbackWindowId = null;
 
     var _init = function () {
         chrome.runtime.onMessage.addListener(_onMessage);
@@ -27,8 +27,8 @@ var CaptureBackground = (function (CaptureConfigs, CaptureStorage, rpfUtils) {
         chrome.windows.create(playbackPopupOpts, function (window) {
             _playbackWindowId = window.id;
             chrome.tabs.query({windowId: window.id}, function (tabs) {
-                _playbackTabId = tabs[0].id;
-                console.log('tabid', _playbackTabId);
+                _tabs.playback = tabs[0].id;
+                console.log('tabid', _tabs.playback);
             });
         });
     },
@@ -120,24 +120,23 @@ var CaptureBackground = (function (CaptureConfigs, CaptureStorage, rpfUtils) {
     },
     _switchToTab = function (tab) {
         chrome.tabs.update(tab.id, {selected: true});
-        chrome.tabs.sendMessage(_tabs.app, {type: 'updateScreenshot', data: _screenshot}, null);
+        chrome.tabs.sendMessage(_tabs.app, {type: 'updateScreenshot', _screenshot}, null);
     },
     _initAppTab = function (index) {
         console.log('_initAppTab');
 
         if (_tabs.app) {
             chrome.tabs.get(_tabs.app, function (tab) {
+                console.log('checkAppTab', tab);
                 if (tab) {
                     _switchToTab(tab);
                 } else {
                     _createNewTab(index);
                 }
             });
-
-            return true;
+        } else {
+            _createNewTab(index);
         }
-
-        _createNewTab(index);
     },
     _createScreenshot = function (callback) {
         console.log('_createScreenshot');
@@ -147,7 +146,7 @@ var CaptureBackground = (function (CaptureConfigs, CaptureStorage, rpfUtils) {
         });
     },
     _getPlaybackTabId = function () {
-        return _playbackTabId;
+        return _tabs.playback;
     };
 
     return {

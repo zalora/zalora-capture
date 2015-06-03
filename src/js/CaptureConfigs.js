@@ -9,6 +9,7 @@
 var CaptureConfigs = (function () {
     var _configs = {
         liveReload: true,
+        serverUrl: 'https://vinhlh.atlassian.net',
         canvas: {
             colors: ['#c0392b', '#d35400', '#f39c12', '#f1c40f', '#16a085', '#2cc36b', '#2980b9', '#8e44ad', '#2c3e50', '#ecf0f1']
         },
@@ -51,6 +52,9 @@ var CaptureConfigs = (function () {
         }
     },
     _initLiveReload = function () {
+        if (window.location.href.indexOf('background.html') != -1) {
+            return false;
+        }
         document.write('<script src="http://localhost:35729/livereload.js?snipver=1"></' + 'script>');
     },
     _init = function () {
