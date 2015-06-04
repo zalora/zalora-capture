@@ -50,6 +50,9 @@ playback.controller('MainController', ['$scope', 'JiraAPIs', 'PlaybackListener',
         'project': null
     };
 
+    $scope.server = CaptureConfigs.get('serverUrl');
+    JiraAPIs.setServer($scope.server);
+
     $scope.loading = 'Fetching project list..';
     JiraAPIs.getProjects(function (resp) {
         $scope.projects = resp;
