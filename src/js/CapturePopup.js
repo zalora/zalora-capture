@@ -109,7 +109,7 @@ popup.controller('MainController', ['$scope', 'JiraAPIs', function ($scope, Jira
     };
 
     $scope.reportBug = function () {
-        console.log('reportBug')
+        console.log('reportBug');
         chrome.runtime.sendMessage({
             type: 'reportBug'
         });

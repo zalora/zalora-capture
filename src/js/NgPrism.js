@@ -11,7 +11,7 @@ angular.module('ngPrism', []).directive('nagPrism', ['$rootScope', function($roo
             var codeElement = element.find("code");
 
             scope.$watch('source', function(val) {
-                if (val == '') {
+                if (val === '') {
                     return false;
                 }
 
