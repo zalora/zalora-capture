@@ -1,33 +1,5 @@
 'use strict';
 
-// angular.module('ngPrism', []).
-//     directive('prism', [function() {
-//         return {
-//             restrict: 'A',
-//             scope: {
-//                 'ngModel': '='
-//             },
-//             template: "<code class='language-actions' ng-bind='source'></code>",
-//             link: function ($scope, element, attrs) {
-//                 var el = element.find('code');
-//                 el.ready(function() {
-//                     Prism.highlightElement(el[0]);
-//                 });
-
-//                 $scope.$watch('ngModel', function () {
-//                     console.log('actions change', $scope.actions);
-//                     Prism.highlightElement(el[0]);
-//                 });
-
-//                 $scope.$watch('currentStep', function () {
-//                     Prism.highlightElement(el[0]);
-//                 });
-//             }
-//         };
-//     }]
-// );
-//
-//
 angular.module('ngPrism', []).directive('nagPrism', ['$rootScope', function($rootScope) {
     return {
         restrict: 'A',
@@ -36,19 +8,23 @@ angular.module('ngPrism', []).directive('nagPrism', ['$rootScope', function($roo
             step: '@'
         },
         link: function(scope, element, attrs) {
-            console.log(scope);
-            var codeElement = element.find("code")[0];
-            scope.$watch('source', function() {
+            var codeElement = element.find("code");
+
+            scope.$watch('source', function(val) {
+                if (val == '') {
+                    return false;
+                }
+
+                console.log(val, codeElement[0]);
                 element.attr('data-line', null);
-                Prism.highlightElement(codeElement);
+                Prism.highlightElement(codeElement[0]);
             });
 
             scope.$watch('step', function(val) {
                 console.log('step change', val);
                 element.attr('data-line', val);
-                Prism.highlightElement(codeElement);
+                Prism.highlightElement(codeElement[0]);
             });
-
         },
         template: "<code ng-bind='source'></code>"
     };

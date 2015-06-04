@@ -676,11 +676,8 @@ app.controller('MainController', ['$scope', 'JiraAPIs', 'CaptureListener', 'Draw
             });
         });
 
-        CaptureStorage.getData('server', function (resp) {
-            if (resp.server) {
-                $scope.server = resp.server;
-            }
-        });
+        $scope.server = CaptureConfigs.get('serverUrl');
+        JiraAPIs.setServer($scope.server);
 
         JiraAPIs.fetchAllAtlassianInfo(function (key, data) {
             $scope.info[key] = data;

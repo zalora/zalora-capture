@@ -20,14 +20,6 @@ popup.controller('MainController', ['$scope', 'JiraAPIs', function ($scope, Jira
         JiraAPIs.getCurUser($scope.server, function (resp) {
             $scope.user = resp;
             $scope.loading = null;
-
-            JiraAPIs.fetchAllAtlassianInfo(function (key, data) {
-                $scope.info[key] = data;
-
-                if (data.length) {
-                    $scope.selected[key] = data[0].id;
-                }
-            });
         }, function () {
             $scope.loading = null;
             $scope.user = null;
@@ -52,7 +44,6 @@ popup.controller('MainController', ['$scope', 'JiraAPIs', function ($scope, Jira
     $scope.logIn = function () {
         // save data to localStorage
         CaptureStorage.saveData({
-            server: $scope.server,
             username: $scope.username
         });
 
@@ -62,13 +53,6 @@ popup.controller('MainController', ['$scope', 'JiraAPIs', function ($scope, Jira
             $scope.user = {
                 name: $scope.username
             };
-
-            JiraAPIs.fetchAllAtlassianInfo(function (key, data) {
-                $scope.info[key] = data;
-                if (data.length) {
-                    $scope.selected[key] = data[0].id;
-                }
-            });
         }, function (resp, status) {
             $scope.loading = false;
             $scope.showLoginFailBox = true;

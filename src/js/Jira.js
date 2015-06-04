@@ -173,33 +173,15 @@ angular.module('Jira', []).factory('JiraAPIs', ['$http', '$filter', function($ht
         });
     },
     _basicGet = function (url, onSuccess, onError) {
-        async.series([
-            function (callback) {
-                if (!_data.server) {
-                    CaptureStorage.getData('server', function (resp) {
-                        _data.server = resp.server;
-                        callback(null, null);
-                    });
-                } else {
-                    callback(null, null);
-                }
-            },
-            function (callback) {
-                $http.get(_data.server + url).success(function (resp) {
-                    if (typeof onSuccess !== 'undefined') {
-                        onSuccess(resp);
-                    }
-
-                    callback(null, null);
-                }).error(function (resp) {
-                    if (typeof onError !== 'undefined') {
-                        onError(resp);
-                    }
-
-                    callback(null, null);
-                });
+        $http.get(_data.server + url).success(function (resp) {
+            if (typeof onSuccess !== 'undefined') {
+                onSuccess(resp);
             }
-        ]);
+        }).error(function (resp) {
+            if (typeof onError !== 'undefined') {
+                onError(resp);
+            }
+        });
     },
     _getProjects = function (onSuccess, onError) {
         _basicGet(_configs.APIs.info.projects, onSuccess, onError);
@@ -246,6 +228,7 @@ angular.module('Jira', []).factory('JiraAPIs', ['$http', '$filter', function($ht
         getIssues: _getIssues,
         getAttachments: _getAttachments,
         getScripts: _getScripts,
-        getJsonFromUrl: _getJsonFromUrl
+        getJsonFromUrl: _getJsonFromUrl,
+        setServer: _setServer
     };
 }]);
