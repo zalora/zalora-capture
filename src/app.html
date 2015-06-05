@@ -82,6 +82,23 @@
                         <textarea ng-model="description" name="description" id="description" class="form-control" required="required" rows="6"></textarea>
                     </div>
 
+                    <div class="form-group">
+                        <label for="screenshots">Other screenshots <font color="red">*</font></label>
+                        <input type="file" nv-file-select="" uploader="uploader" multiple>
+
+                        <ul class="screenshots" ng-show="uploader.queue.length" ng-cloak>
+                            <li ng-repeat="item in uploader.queue">
+                                <div class="thumb" ng-thumb="{ file: item._file, width: 230 }"></div>
+                                <div class="name" title="{{ item.file.name }}">
+                                    {{ item.file.name }}
+                                </div>
+                                <div class="remove" ng-click="item.remove()" title="Remove">
+                                    <i class="fa fa-close"></i> remove
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+
                     <div class="form-group" ng-show="actions">
                         <label for="actions">User actions</label>
                         <textarea ng-model="$root.actions" name="actions" id="actions" class="form-control" rows="6" ></textarea>
@@ -94,9 +111,6 @@
                                 Include environment data
                             </label>
                         </div>
-                    </div>
-
-                    <div class="form-group">
                         <div class="checkbox">
                             <label>
                                 <input type="checkbox" value="" checked="checked" ng-model="includeJsErrors">
@@ -116,6 +130,7 @@
 
         <!--<script src="js/ConsoleListener.js"></script>-->
         <script src="../bower_components/angularjs/angular.min.js"></script>
+        <script src="../bower_components/angular-file-upload/angular-file-upload.min.js"></script>
         <script src="../bower_components/snap.svg/dist/snap.svg-min.js"></script>
         <script src="../bower_components/async/lib/async.js"></script>
         <script src="js/CaptureCommon.js"></script>

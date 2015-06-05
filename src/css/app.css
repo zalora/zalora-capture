@@ -181,3 +181,47 @@ md-select,md-select-label {
 #text-layer:active {
     outline: none;
 }
+
+ul.screenshots {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    margin-top: 15px;
+    /*background: #f5f6f7;*/
+    border-radius: 3px;
+}
+
+ul.screenshots li {
+    margin-bottom: 20px;
+    border: 1px solid #E0E0E0;
+    padding: 20px;
+    padding-bottom: 10px;
+    position: relative;
+}
+
+ul.screenshots li:last-child {
+    margin-bottom: 0;
+}
+
+ul.screenshots .thumb {
+}
+
+ul.screenshots .name {
+    font-size: 12px;
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-top: 5px;
+}
+
+ul.screenshots .remove {
+    color: rgb(229, 0, 0);
+    display: inline-block;
+    font-size: 12px;
+    cursor: pointer;
+    text-align: center;
+    text-transform: uppercase;
+    font-size: 10px;
+    font-weight: bold;
+}

@@ -5,7 +5,7 @@
 
 'use strict';
 
-var app = angular.module('CaptureApp', ['Jira', 'CaptureCommon', 'CaptureConfigs', 'CaptureStorage']);
+var app = angular.module('CaptureApp', ['Jira', 'CaptureCommon', 'CaptureConfigs', 'CaptureStorage', 'angularFileUpload']);
 
 /**
  * configs
@@ -51,7 +51,6 @@ app.factory('CaptureListener', ['JiraAPIs', '$rootScope', 'CaptureLog', 'Capture
             });
         },
         updateConsoleErrors: function (data) {
-            console.log(data);
             $rootScope.consoleErrors = data;
         }
     };
@@ -371,6 +370,56 @@ app.directive('captureCanvas', ['Drawer', function (Drawer) {
 }]);
 
 /**
+* The ng-thumb directive
+* @author: nerv
+* @version: 0.1.2, 2014-01-09
+*/
+app.directive('ngThumb', ['$window', function($window) {
+    var helper = {
+        support: !!($window.FileReader && $window.CanvasRenderingContext2D),
+        isFile: function(item) {
+            return angular.isObject(item) && item instanceof $window.File;
+        },
+        isImage: function(file) {
+            var type =  '|' + file.type.slice(file.type.lastIndexOf('/') + 1) + '|';
+            return '|jpg|png|jpeg|bmp|gif|'.indexOf(type) !== -1;
+        }
+    };
+
+    return {
+        restrict: 'A',
+        template: '<canvas/>',
+        link: function(scope, element, attributes) {
+            if (!helper.support) return;
+
+            var params = scope.$eval(attributes.ngThumb);
+
+            if (!helper.isFile(params.file)) return;
+            if (!helper.isImage(params.file)) return;
+
+            var canvas = element.find('canvas');
+            var reader = new FileReader();
+
+            reader.onload = onLoadFile;
+            reader.readAsDataURL(params.file);
+
+            function onLoadFile(event) {
+                var img = new Image();
+                img.onload = onLoadImage;
+                img.src = event.target.result;
+            }
+
+            function onLoadImage() {
+                var width = params.width || this.width / this.height * params.height;
+                var height = params.height || this.height / this.width * params.width;
+                canvas.attr({ width: width, height: height });
+                canvas[0].getContext('2d').drawImage(this, 0, 0, width, height);
+            }
+        }
+    };
+}]);
+
+/**
  * controllers
  */
 
@@ -635,7 +684,7 @@ app.controller('DrawController', ['CaptureConfigs', '$scope', 'Drawer', '$sce', 
     };
 }]);
 
-app.controller('MainController', ['CaptureConfigs', 'CaptureStorage', '$scope', 'JiraAPIs', 'CaptureListener', 'Drawer', 'CaptureMessage', '$rootScope', function (CaptureConfigs, CaptureStorage, $scope, JiraAPIs, CaptureListener, Drawer, CaptureMessage, $rootScope) {
+app.controller('MainController', ['CaptureConfigs', 'CaptureStorage', '$scope', 'JiraAPIs', 'CaptureListener', 'Drawer', 'CaptureMessage', '$rootScope', 'FileUploader', function (CaptureConfigs, CaptureStorage, $scope, JiraAPIs, CaptureListener, Drawer, CaptureMessage, $rootScope, FileUploader) {
 
     // init
     var _init = function () {
@@ -673,8 +722,25 @@ app.controller('MainController', ['CaptureConfigs', 'CaptureStorage', '$scope', 
             }
         });
 
+        _initUploader();
+
         $scope.includeEnv = true;
         $scope.includeJsErrors = true;
+    },
+    _initUploader = function () {
+        var uploader = $rootScope.uploader = new FileUploader({});
+
+        uploader.filters.push({
+            name: 'imageFilter',
+            fn: function(item /*{File|FileLikeObject}*/, options) {
+                var type = '|' + item.type.slice(item.type.lastIndexOf('/') + 1) + '|';
+                return '|jpg|png|jpeg|bmp|gif|'.indexOf(type) !== -1;
+            }
+        });
+
+        $rootScope.addedFileItems = [];
+        uploader.onAfterAddingAll = function(addedFileItems) {
+        };
     },
     _removeInfoMapRedundant = function(infoMap, script, screenshots) {
         if (!infoMap || !infoMap.steps || !infoMap.elems) {
@@ -765,12 +831,25 @@ app.controller('MainController', ['CaptureConfigs', 'CaptureStorage', '$scope', 
                 }
             }, function (err, finalResults) { // attach recording data
                 async.series([
+                    function (callback) { // upload attached images
+                        $scope.loading = 'Uploading attached images..';
+
+                        var items = $scope.uploader.queue;
+                        if (!items.length) {
+                            $scope.loading = false;
+                            return callback(null, null);
+                        }
+
+                        JiraAPIs.attachImages(finalResults.issueId, items, function (resp) {
+                            $scope.loading = false;
+                            $scope.uploader.clearQueue();
+                            return callback(null, null);
+                        });
+                    },
                     function (callback) { // upload user actions data
                         if (!finalResults.recordingData) {
-                            $scope.$apply(function () {
-                                $scope.loading = false;
+                            $scope.loading = false;
                                 $scope.actions = '';
-                            });
                             return callback(null, null);
                         } else {
                             finalResults.recordingData.startUrl = finalResults.startUrl;
@@ -788,10 +867,12 @@ app.controller('MainController', ['CaptureConfigs', 'CaptureStorage', '$scope', 
                     },
                     function (callback) { // uploading javascript errors data
                         if (!$scope.includeJsErrors) {
+                            $scope.loading = false;
                             return callback(null, null);
                         }
 
                         if (!$scope.consoleErrors.length) {
+                            $scope.loading = false;
                             return callback(null, null);
                         }
 

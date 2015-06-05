@@ -19,7 +19,7 @@
     "angular-material": "*",
     "bootstrap": "~3.3.4",
     "angularjs": "*",
-    // "jquery": "~2.1.4",
+    "angular-file-upload": "*",
     "snap.svg": "*"
   }
 }

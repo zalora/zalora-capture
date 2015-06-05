@@ -133,16 +133,7 @@ jira.factory('JiraAPIs', ['$http', '$filter', 'CaptureConfigs', 'CaptureStorage'
 
         return new Blob([uInt8Array], {type: contentType});
     },
-    _attachToIssue = function (key, data, fileName, onSuccess, onError) {
-        var url = _data.server + _configs.APIs.attachToIssue.replace('{issueId}', key);
-
-        var fd = new FormData();
-
-        fileName = fileName.replace('%s', $filter('date')(Date.now(), "yyyy-MM-dd 'at' h:mma"));
-        fd.append('file', data, fileName);
-
-        console.log(fileName);
-
+    _postAttachmentToIssue = function (url, fd, onSuccess, onError) {
         $http.post(url, fd, {
             transformRequest: angular.identity,
             headers: {
@@ -150,23 +141,46 @@ jira.factory('JiraAPIs', ['$http', '$filter', 'CaptureConfigs', 'CaptureStorage'
                 'X-Atlassian-Token': 'nocheck'
             }
         }).success(function (resp) {
-            if (typeof onSuccess !== 'undefined') {
+            if (onSuccess) {
                 onSuccess(resp);
             }
         }).error(function (resp) {
-            if (typeof onError !== 'undefined') {
+            if (onError) {
                 onError(resp);
             }
         });
     },
+    _addAttachmentToIssue = function (key, data, fileName, onSuccess, onError) {
+        var url = _data.server + _configs.APIs.attachToIssue.replace('{issueId}', key);
+
+        var fd = new FormData();
+
+        fileName = fileName.replace('%s', $filter('date')(Date.now(), "yyyy-MM-dd 'at' h:mma"));
+        fd.append('file', data, fileName);
+
+        _postAttachmentToIssue(url, fd, onSuccess, onError);
+    },
+    _addMultipleAttachmentsToIssue = function (key, files, onSuccess, onError) {
+        var url = _data.server + _configs.APIs.attachToIssue.replace('{issueId}', key);
+
+        var fd = new FormData();
+        for (var i = 0; i < files.length; i++) {
+            fd.append('file', files[i]._file, files[i]._file.name);
+        }
+
+        _postAttachmentToIssue(url, fd, onSuccess, onError);
+    },
     _attachScreenshotToIssue = function (key, data, onSuccess, onError) {
-        _attachToIssue(key, _dataURLToBlob(data), 'Screen Shot %s.png', onSuccess, onError);
+        _addAttachmentToIssue(key, _dataURLToBlob(data), 'Screen Shot %s.png', onSuccess, onError);
+    },
+    _attachImages = function (key, files, onSuccess, onError) {
+        _addMultipleAttachmentsToIssue(key, files, onSuccess, onError);
     },
     _attachJsonData = function (prefix, key, data, onSuccess, onError) {
         data = new Blob([JSON.stringify(data)], {
             type: 'application/json'
         });
-        _attachToIssue(key, data, prefix + ' %s.json', onSuccess, onError);
+        _addAttachmentToIssue(key, data, prefix + ' %s.json', onSuccess, onError);
     },
     _attachRecordingData = function (key, data, onSuccess, onError) {
         _attachJsonData('Recording Data', key, data, onSuccess, onError);
@@ -232,6 +246,7 @@ jira.factory('JiraAPIs', ['$http', '$filter', 'CaptureConfigs', 'CaptureStorage'
         attachScreenshotToIssue: _attachScreenshotToIssue,
         attachRecordingData: _attachRecordingData,
         attachJavascriptErrors: _attachJavascriptErrors,
+        attachImages: _attachImages,
         generateMetaData: _generateMetaData,
         logOut: _logOut,
         getProjects: _getProjects,
