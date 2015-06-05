@@ -5,7 +5,7 @@
 
 'use strict';
 
-var app = angular.module('CaptureApp', ['Jira']);
+var app = angular.module('CaptureApp', ['Jira', 'CaptureCommon', 'CaptureConfigs', 'CaptureStorage']);
 
 /**
  * configs
@@ -19,20 +19,16 @@ app.config(['$httpProvider', function ($httpProvider) {
  * services
  */
 
-app.factory('CaptureListener', ['JiraAPIs', 'CaptureSender', '$rootScope', function (JiraAPIs, CaptureSender, $rootScope) {
+app.factory('CaptureListener', ['JiraAPIs', '$rootScope', 'CaptureLog', 'CaptureMessage', function (JiraAPIs, $rootScope, CaptureLog, CaptureMessage) {
     var _canvas = Snap('#draw-canvas'),
         _svgImage = null;
 
     var _init = function () {
-        chrome.runtime.onMessage.addListener(_onMessage);
-
+        CaptureMessage.addListener(_actions);
         $rootScope.actions = '';
     },
     _actions = {
         updateScreenshot: function (data) {
-            console.log('updateScreenshot', data);
-            console.log('window.devicePixelRatio', window.devicePixelRatio);
-
             var image;
 
             if (_svgImage) {
@@ -48,41 +44,22 @@ app.factory('CaptureListener', ['JiraAPIs', 'CaptureSender', '$rootScope', funct
             };
             image.src = data;
 
-            CaptureSender.send('getUserActions', null, function (resp) {
-                console.log('[getUserActions]', resp);
+            CaptureMessage.sendMessage('getUserActions', null, function (resp) {
                 $rootScope.$apply(function () {
                     $rootScope.actions = resp.length ? resp.join('\n') : '';
                 });
             });
+        },
+        updateConsoleErrors: function (data) {
+            console.log(data);
+            $rootScope.consoleErrors = data;
         }
-    },
-    _onMessage = function (request, sender, sendResponse) {
-        console.log('[app] comming request > ', request, sender);
-        // sendResponse('[app] received request!');
-
-        if (typeof request.type === 'undefined' || typeof _actions[request.type] === 'undefined') {
-            return false;
-        }
-
-        _actions[request.type](request.data);
     };
 
     _init();
 
     return {
         actions: _actions
-    };
-}]);
-
-app.factory('CaptureSender', [function () {
-    var _send = function (command, data, callback) {
-        chrome.runtime.sendMessage({type: command, data: data}, function (resp) {
-            callback(resp);
-        });
-    };
-
-    return {
-        send: _send
     };
 }]);
 
@@ -93,17 +70,15 @@ app.factory('DrawSettings', [function () {
 
     return {
         set: function (setting, color) {
-            console.log('set', setting, color);
             _settings[setting] = color;
         },
         get: function (setting) {
-            console.log('get', setting);
             return _settings[setting];
         }
     };
 }]);
 
-app.factory('Tool', ['DrawSettings', function (DrawSettings) {
+app.factory('Tool', ['DrawSettings', 'CaptureLog', function (DrawSettings, CaptureLog) {
     var Tool = function (params, handlers) {
         this.params = {
             hooks: {
@@ -128,7 +103,7 @@ app.factory('Tool', ['DrawSettings', function (DrawSettings) {
     };
 
     Tool.prototype.mousedown = function (x, y) {
-        console.log('mousedown', x, y);
+        CaptureLog.log('mousedown', x, y);
 
         this.params.hooks.beforeMousedown.call(this, x, y);
 
@@ -147,13 +122,13 @@ app.factory('Tool', ['DrawSettings', function (DrawSettings) {
     };
 
     Tool.prototype.mouseup = function (x, y) {
-        console.log('mouseup', x, y);
+        CaptureLog.log('mouseup', x, y);
 
         if (this.params.events.mouseup) {
             this.params.events.mouseup.call(this, x, y);
         } else { // default behaviors
             if (this.isSamePoint() && this.activeElement) {
-                console.log('isSamePoint');
+                CaptureLog.log('isSamePoint');
                 this.activeElement.remove();
                 this.activeElement = null;
                 this.elements.splice(this.elements.length - 1, 1);
@@ -166,7 +141,7 @@ app.factory('Tool', ['DrawSettings', function (DrawSettings) {
     };
 
     Tool.prototype.mousemove = function (x, y) {
-        console.log('mousemove', x, y);
+        CaptureLog.log('mousemove', x, y);
 
         if (this.params.events.mousemove) {
             this.params.events.mousemove.call(this, x, y);
@@ -191,7 +166,7 @@ app.factory('Tool', ['DrawSettings', function (DrawSettings) {
     };
 
     Tool.prototype.render = function () {
-        console.log(this.params.attrs);
+        CaptureLog.log(this.params.attrs);
         for (var attrKey in this.params.attrs) {
             var attrValue;
             if (this.params.attrs[attrKey] == 'color') {
@@ -207,7 +182,7 @@ app.factory('Tool', ['DrawSettings', function (DrawSettings) {
     };
 
     Tool.prototype.isSamePoint = function () {
-        console.log(this.activeElement.pStart, this.activeElement.pEnd);
+        CaptureLog.log(this.activeElement.pStart, this.activeElement.pEnd);
         return this.activeElement.pStart.x == this.activeElement.pEnd.x && this.activeElement.pStart.y == this.activeElement.pEnd.y;
     };
 
@@ -399,8 +374,8 @@ app.directive('captureCanvas', ['Drawer', function (Drawer) {
  * controllers
  */
 
-app.controller('DrawController', ['$scope', 'Drawer', '$sce', 'DrawSettings',
-    function ($scope, Drawer, $sce, DrawSettings) {
+app.controller('DrawController', ['CaptureConfigs', '$scope', 'Drawer', '$sce', 'DrawSettings',
+    function (CaptureConfigs, $scope, Drawer, $sce, DrawSettings) {
     $scope.canvas = Snap('#draw-canvas');
     $scope.colors = CaptureConfigs.get('canvas', 'colors');
     $scope.textLayer = {
@@ -660,7 +635,7 @@ app.controller('DrawController', ['$scope', 'Drawer', '$sce', 'DrawSettings',
     };
 }]);
 
-app.controller('MainController', ['$scope', 'JiraAPIs', 'CaptureListener', 'Drawer', 'CaptureSender', '$rootScope', function ($scope, JiraAPIs, CaptureListener, Drawer, CaptureSender, $rootScope) {
+app.controller('MainController', ['CaptureConfigs', 'CaptureStorage', '$scope', 'JiraAPIs', 'CaptureListener', 'Drawer', 'CaptureMessage', '$rootScope', function (CaptureConfigs, CaptureStorage, $scope, JiraAPIs, CaptureListener, Drawer, CaptureMessage, $rootScope) {
 
     // init
     var _init = function () {
@@ -669,17 +644,28 @@ app.controller('MainController', ['$scope', 'JiraAPIs', 'CaptureListener', 'Draw
 
         // on ready
         angular.element(document).ready(function () {
-            CaptureSender.send('getScreenshot', null, function (resp) {
+            CaptureMessage.sendMessage('getScreenshot', null, function (resp) {
                 if (resp) {
                     CaptureListener.actions.updateScreenshot(resp);
                 }
             });
+
+            CaptureMessage.sendMessage('processConsoleError', null, null);
         });
 
         $scope.server = CaptureConfigs.get('serverUrl');
         JiraAPIs.setServer($scope.server);
 
         JiraAPIs.fetchAllAtlassianInfo(function (key, data) {
+            if (key == 'issueTypes') { // filter subtask
+                var index;
+                for (index in data) {
+                    if (data[index].subtask) {
+                        data.splice(index, 1);
+                    }
+                }
+            }
+
             $scope.info[key] = data;
 
             if (data.length) {
@@ -688,6 +674,7 @@ app.controller('MainController', ['$scope', 'JiraAPIs', 'CaptureListener', 'Draw
         });
 
         $scope.includeEnv = true;
+        $scope.includeJsErrors = true;
     },
     _removeInfoMapRedundant = function(infoMap, script, screenshots) {
         if (!infoMap || !infoMap.steps || !infoMap.elems) {
@@ -761,7 +748,7 @@ app.controller('MainController', ['$scope', 'JiraAPIs', 'CaptureListener', 'Draw
 
                     var scripts = $scope.actions.split('\n');
 
-                    CaptureSender.send('getRecordingData', null, function (resp) {
+                    CaptureMessage.sendMessage('getRecordingData', null, function (resp) {
                         _removeInfoMapRedundant(resp.infoMap, $scope.actions, resp.screenshots);
 
                         if (resp.infoMap) {
@@ -777,22 +764,45 @@ app.controller('MainController', ['$scope', 'JiraAPIs', 'CaptureListener', 'Draw
                     });
                 }
             }, function (err, finalResults) { // attach recording data
-                if (!finalResults.recordingData) {
-                    $scope.$apply(function () {
-                        $scope.loading = false;
-                        $scope.actions = '';
-                    });
-                } else {
-                    $scope.loading = 'Uploading user actions data..';
-                    finalResults.recordingData.startUrl = finalResults.startUrl;
+                async.series([
+                    function (callback) { // upload user actions data
+                        if (!finalResults.recordingData) {
+                            $scope.$apply(function () {
+                                $scope.loading = false;
+                                $scope.actions = '';
+                            });
+                            return callback(null, null);
+                        } else {
+                            finalResults.recordingData.startUrl = finalResults.startUrl;
+                        }
 
-                    JiraAPIs.attachRecordingData(finalResults.issueId, finalResults.recordingData, function (resp) {
-                        $scope.loading = false;
-                        $scope.actions = '';
-                    }, function (resp) {
-                        // TODO: handle errors
-                    });
-                }
+                        $scope.loading = 'Uploading user actions data..';
+                        JiraAPIs.attachRecordingData(finalResults.issueId, finalResults.recordingData, function (resp) {
+                            $scope.loading = false;
+                            $scope.actions = '';
+                            callback(null, null);
+                        }, function (resp) {
+                            // TODO: handle errors
+                            callback(null, null);
+                        });
+                    },
+                    function (callback) { // uploading javascript errors data
+                        if (!$scope.includeJsErrors) {
+                            return callback(null, null);
+                        }
+
+                        if (!$scope.consoleErrors.length) {
+                            return callback(null, null);
+                        }
+
+                        $scope.loading = 'Uploading javascript errors data..';
+                        JiraAPIs.attachJavascriptErrors(finalResults.issueId, $scope.consoleErrors, function () {
+                            $scope.loading = false;
+                            $scope.consoleErrors = [];
+                        });
+                    }
+                ]);
+
             });
         });
     };

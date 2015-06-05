@@ -6,7 +6,9 @@
 
 'use strict';
 
-angular.module('Jira', []).factory('JiraAPIs', ['$http', '$filter', function($http, $filter){
+var jira = angular.module('Jira', ['CaptureConfigs', 'CaptureStorage']);
+
+jira.factory('JiraAPIs', ['$http', '$filter', 'CaptureConfigs', 'CaptureStorage', function($http, $filter, CaptureConfigs, CaptureStorage){
     var _configs = {
         APIs: CaptureConfigs.get('APIs')
     }, _data = {}, _reporterId = null;
@@ -57,7 +59,6 @@ angular.module('Jira', []).factory('JiraAPIs', ['$http', '$filter', function($ht
     _fetchAllAtlassianInfo = function (callback) {
         angular.forEach(_configs.APIs.info, function(value, key){
             _basicGet(value, function (resp) {
-                console.log('[set]', key, resp);
                 callback(key, resp);
             });
         });
@@ -161,12 +162,19 @@ angular.module('Jira', []).factory('JiraAPIs', ['$http', '$filter', function($ht
     _attachScreenshotToIssue = function (key, data, onSuccess, onError) {
         _attachToIssue(key, _dataURLToBlob(data), 'Screen Shot %s.png', onSuccess, onError);
     },
-    _attachRecordingData = function (key, data, onSuccess, onError) {
+    _attachJsonData = function (prefix, key, data, onSuccess, onError) {
         data = new Blob([JSON.stringify(data)], {
             type: 'application/json'
         });
-        _attachToIssue(key, data, 'Recording Data %s.json', onSuccess, onError);
+        _attachToIssue(key, data, prefix + ' %s.json', onSuccess, onError);
     },
+    _attachRecordingData = function (key, data, onSuccess, onError) {
+        _attachJsonData('Recording Data', key, data, onSuccess, onError);
+    },
+    _attachJavascriptErrors = function (key, data, onSuccess, onError) {
+        _attachJsonData('Javascript errors', key, data, onSuccess, onError);
+    },
+
     _logOut = function (onSuccess, onError) {
         $http.delete(_data.server + _configs.APIs.logOut).success(function (resp) {
             onSuccess(resp);
@@ -187,7 +195,8 @@ angular.module('Jira', []).factory('JiraAPIs', ['$http', '$filter', function($ht
         _basicGet(_configs.APIs.info.projects, onSuccess, onError);
     },
     _getIssues = function (projectId, onSuccess, onError) {
-        _basicGet(_configs.APIs.searchIssue.replace('{projectId}', projectId), onSuccess, onError);
+        var query = encodeURIComponent('project=' + projectId + ' and status != Resolved and status != Closed');
+        _basicGet(_configs.APIs.searchIssue.replace('{query}', query), onSuccess, onError);
     },
     _getAttachments = function (issueId, onSuccess, onError) {
         _basicGet(_configs.APIs.getAttachment.replace('{issueId}', issueId), onSuccess, onError);
@@ -222,6 +231,7 @@ angular.module('Jira', []).factory('JiraAPIs', ['$http', '$filter', function($ht
         createIssue: _createIssue,
         attachScreenshotToIssue: _attachScreenshotToIssue,
         attachRecordingData: _attachRecordingData,
+        attachJavascriptErrors: _attachJavascriptErrors,
         generateMetaData: _generateMetaData,
         logOut: _logOut,
         getProjects: _getProjects,

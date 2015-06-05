@@ -31,25 +31,6 @@
             <md-button type="submit" class="">
                 Login
             </md-button>
-
-
-            <!-- <div class="form-group">
-                <label for="server">Server URL <font color="red">*</font></label>
-                <input type="text" class="form-control" id="server" name="server" placeholder="" required="required" ng-model="server">
-            </div>
-
-            <div class="form-group">
-                <label for="username">Username <font color="red">*</font></label>
-                <input type="text" class="form-control" id="username" name="username" placeholder="" required="required" ng-model="username">
-            </div>
-
-            <div class="form-group">
-                <label for="password">Password <font color="red">*</font></label>
-                <input type="password" class="form-control" id="password" name="password" placeholder="" required="required" ng-model="password">
-            </div>
-
-
-            <button type="submit" class="btn btn-primary">Log in</button> -->
         </form>
 
         <div class="loading-box" ng-show="loading" ng-cloak>
@@ -68,27 +49,18 @@
                     For Testers
                 </li>
                 <li id="start-record" ng-show="!isRecording" ng-cloak>
-                    <!-- <a href="#" ng-click="setRecordingTab()" class="btn btn-primary">
-                        <i class="fa fa-circle"></i><span>Start Session</span>
-                    </a> -->
                     <md-button class="md-primary" ng-click="setRecordingTab()">
                         <i class="fa fa-circle"></i><span>
                         <span>Start Session</span>
                     </md-button>
                 </li>
                 <li id="stop-record" ng-show="isRecording" ng-cloak>
-       <!--              <a href="#" ng-click="stopRecord()" class="btn btn-danger">
-                        <i class="fa fa-stop"></i><span>Stop Session</span>
-                    </a> -->
                     <md-button class="md-warn" ng-click="stopRecord()">
                         <i class="fa fa-stop"></i>
                         <span>Stop Session</span>
                     </md-button>
                 </li>
                 <li id="report-bug">
-                    <!-- <a href="#" ng-click="reportBug()" class="btn btn-primary">
-                        <i class="fa fa-bug"></i><span>Report Bug</span>
-                    </a> -->
                     <md-button class="" ng-click="reportBug()">
                         <i class="fa fa-bug"></i><span>
                         <span>Report bug</span>
@@ -98,9 +70,6 @@
                     For Developers
                 </li>
                 <li id="playback" ng-click="initPlaybackWindow()">
-                    <!-- <a href="#" class="btn btn-primary">
-                        <i class="fa fa-play"></i><span>Playback</span>
-                    </a> -->
                     <md-button class="">
                         <i class="fa fa-play"></i>
                         <span>Playback</span>
@@ -109,12 +78,9 @@
             </ul>
             <div id="user">
                 <div class="pull-left">
-                    <!-- <i class="fa fa-user"></i>  -->
                     <b>{{user.name}}</b>
                 </div>
                 <div class="pull-right">
-                    <!-- <a href="#" ng-click="logOut()" class="logout">Log out</a> -->
-
                     <md-button class="md-warn md-medium" ng-click="logOut()">Log out</md-button>
                 </div>
             </div>
@@ -127,9 +93,10 @@
     <script src="../bower_components/angular-material/angular-material.min.js"></script>
 
     <script src="../bower_components/async/lib/async.js"></script>
-    <script src="js/Jira.js"></script>
+    <script src="js/CaptureCommon.js"></script>
     <script src="js/CaptureConfigs.js"></script>
     <script src="js/CaptureStorage.js"></script>
+    <script src="js/Jira.js"></script>
     <script src="js/CapturePopup.js"></script>
 </body>
 </html>

@@ -6,11 +6,11 @@
 
 'use strict';
 
-var playback = angular.module('CapturePlayback', ['Jira', 'ngPrism']);
+var playback = angular.module('CapturePlayback', ['Jira', 'ngPrism', 'CaptureConfigs', 'CaptureCommon', 'CaptureStorage']);
 
-playback.factory('PlaybackListener', ['$rootScope', function ($rootScope) {
+playback.factory('PlaybackListener', ['$rootScope', 'CaptureMessage', function ($rootScope, CaptureMessage) {
     var _init = function () {
-        chrome.runtime.onMessage.addListener(_onMessage);
+        CaptureMessage.addListener(_actions);
     },
     _actions = {
         updatePlaybackStatus: function (resp) {
@@ -23,15 +23,6 @@ playback.factory('PlaybackListener', ['$rootScope', function ($rootScope) {
                 $rootScope.currentStep = resp.curStep + 1;
             });
         }
-    },
-    _onMessage = function (request, sender, sendResponse) {
-        console.log('[playback] comming request > ', request, sender);
-
-        if (typeof request.type === 'undefined' || typeof _actions[request.type] === 'undefined') {
-            return false;
-        }
-
-        _actions[request.type](request.data);
     };
 
     _init();
@@ -41,7 +32,7 @@ playback.factory('PlaybackListener', ['$rootScope', function ($rootScope) {
     };
 }]);
 
-playback.controller('MainController', ['$scope', 'JiraAPIs', 'PlaybackListener', '$rootScope', function ($scope, JiraAPIs, PlaybackListener, $rootScope) {
+playback.controller('MainController', ['$scope', 'JiraAPIs', 'PlaybackListener', '$rootScope', 'CaptureConfigs', 'CaptureStorage', function ($scope, JiraAPIs, PlaybackListener, $rootScope, CaptureConfigs, CaptureStorage) {
     $scope.projects = null;
     $scope.issues = null;
     $scope.scripts = null;
@@ -81,6 +72,10 @@ playback.controller('MainController', ['$scope', 'JiraAPIs', 'PlaybackListener',
     };
 
     $scope.getScripts = function () {
+        if (!$scope.selected.issue) {
+            return false;
+        }
+
         $scope.stopPlayback();
 
         $scope.loading = 'Fetching script list..';

@@ -2,11 +2,13 @@
  * CaptureStorage
  *
  * @author VinhLH
+ * @copyright May 2015
  */
 
 'use strict';
 
-var CaptureStorage = (function () {
+angular.module('CaptureStorage', ['CaptureConfigs'])
+.factory('CaptureStorage', ['CaptureConfigs', function (CaptureConfigs) {
     var _configs = CaptureConfigs.get('storage');
 
     var _addDataPrefix = function (data) {
@@ -65,4 +67,4 @@ var CaptureStorage = (function () {
         getData: _getData,
         saveData: _saveData
     };
-})();
+}]);

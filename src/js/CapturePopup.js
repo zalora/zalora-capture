@@ -2,13 +2,14 @@
  * CapturePopup
  *
  * @author VinhLH
+ * @copyright May 2015
  */
 
 'use strict';
 
-var popup = angular.module('CapturePopup', ['Jira', 'ngMaterial']);
+var popup = angular.module('CapturePopup', ['Jira', 'ngMaterial', 'CaptureConfigs', 'CaptureStorage', 'CaptureCommon']);
 
-popup.controller('MainController', ['$scope', 'JiraAPIs', function ($scope, JiraAPIs) {
+popup.controller('MainController', ['$scope', 'JiraAPIs', 'CaptureConfigs', 'CaptureStorage', 'CaptureLog', function ($scope, JiraAPIs, CaptureConfigs, CaptureStorage, CaptureLog) {
     var _init = function () {
         $scope.user = null;
         $scope.server = CaptureConfigs.get('serverUrl');
@@ -74,7 +75,7 @@ popup.controller('MainController', ['$scope', 'JiraAPIs', function ($scope, Jira
                 type: 'setRecordingTab',
                 data: tab[0]
             }, function (resp) {
-                console.log('[setRecordingTab]', resp);
+                CaptureLog.log('[setRecordingTab]', resp);
                 if (resp) {
                     CaptureStorage.saveData({recordingStartUrl: tab[0].url});
                     $scope.startRecord();
@@ -109,7 +110,7 @@ popup.controller('MainController', ['$scope', 'JiraAPIs', function ($scope, Jira
     };
 
     $scope.reportBug = function () {
-        console.log('reportBug');
+        CaptureLog.log('reportBug');
         chrome.runtime.sendMessage({
             type: 'reportBug'
         });
@@ -117,7 +118,7 @@ popup.controller('MainController', ['$scope', 'JiraAPIs', function ($scope, Jira
 
     var _createWindow = function (playbackPopupOpts) {
         chrome.windows.create(playbackPopupOpts, function (window) {
-            console.log('create', window.id);
+            CaptureLog.log('create', window.id);
             CaptureStorage.saveData({playbackWindowId : window.id});
         });
     };

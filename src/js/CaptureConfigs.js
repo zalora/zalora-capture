@@ -2,13 +2,16 @@
  * CaptureConfigs
  *
  * @author VinhLH
+ * @copyright May 2015
  */
 
 'use strict';
 
-var CaptureConfigs = (function () {
+angular.module('CaptureConfigs', [])
+.factory('CaptureConfigs', ['$rootScope', '$sce', function ($rootScope, $sce) {
     var _configs = {
         liveReload: true,
+        debugMode: true,
         serverUrl: 'https://vinhlh.atlassian.net',
         canvas: {
             colors: ['#c0392b', '#d35400', '#f39c12', '#f1c40f', '#16a085', '#2cc36b', '#2980b9', '#8e44ad', '#2c3e50', '#ecf0f1']
@@ -22,7 +25,7 @@ var CaptureConfigs = (function () {
                 // issueTypes: '/rest/api/2/issue/createmeta'
             },
             search: '/rest/api/2/search',
-            searchIssue: '/rest/api/2/search?jql=project={projectId}&maxResults=1000&fields=id,key,summary',
+            searchIssue: '/rest/api/2/search?jql={query}&maxResults=1000&fields=id,key,summary',
             getAttachment: '/rest/api/2/issue/{issueId}?fields=attachment',
             createIssue: '/rest/api/2/issue',
             attachToIssue: '/rest/api/2/issue/{issueId}/attachments',
@@ -55,7 +58,12 @@ var CaptureConfigs = (function () {
         if (window.location.href.indexOf('background.html') != -1) {
             return false;
         }
-        document.write('<script src="http://localhost:35729/livereload.js?snipver=1"></' + 'script>');
+
+        angular.element(document).ready(function () {
+            var script = document.createElement('script');
+            script.src = 'http://localhost:35729/livereload.js?snipver=1';
+            document.body.appendChild(script);
+        });
     },
     _init = function () {
         if (_configs.liveReload) {
@@ -82,5 +90,5 @@ var CaptureConfigs = (function () {
             return _configs[group][key];
         }
     };
-})();
+}]);
 
