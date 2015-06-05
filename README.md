@@ -21,6 +21,10 @@ Two dependency files is generated from this repository https://github.com/vinhlh
 - Choose `Load unpacked extension`
 - Locate to the repository directory
 
+### Get started
+- Go to `src/js/CaptureConfigs.js` to disable livereload: false
+- Change `serverUrl` to `zalora.atlassian.net`
+
 ## Use
 
 - Click `Extension Button` on Chrome navigation bar on any web page to reporting bugs.

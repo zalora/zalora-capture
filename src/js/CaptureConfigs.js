@@ -10,9 +10,9 @@
 angular.module('CaptureConfigs', [])
 .factory('CaptureConfigs', ['$rootScope', '$sce', function ($rootScope, $sce) {
     var _configs = {
-        liveReload: true,
         debugMode: true,
-        serverUrl: 'https://vinhlh.atlassian.net',
+        liveReload: false,
+        serverUrl: 'https://zalora.atlassian.net',
         canvas: {
             colors: ['#c0392b', '#d35400', '#f39c12', '#f1c40f', '#16a085', '#2cc36b', '#2980b9', '#8e44ad', '#2c3e50', '#ecf0f1']
         },
