@@ -16,7 +16,7 @@ angular.module('ngPrism', []).directive('nagPrism', ['$rootScope', function($roo
                 }
 
                 console.log(val, codeElement[0]);
-                element.attr('data-line', null);
+                element.attr('data-line', 0);
                 Prism.highlightElement(codeElement[0]);
             });
 
