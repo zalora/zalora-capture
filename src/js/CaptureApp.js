@@ -684,7 +684,7 @@ app.controller('DrawController', ['CaptureConfigs', '$scope', 'Drawer', '$sce', 
     };
 }]);
 
-app.controller('MainController', ['CaptureConfigs', 'CaptureStorage', '$scope', 'JiraAPIs', 'CaptureListener', 'Drawer', 'CaptureMessage', '$rootScope', 'FileUploader', function (CaptureConfigs, CaptureStorage, $scope, JiraAPIs, CaptureListener, Drawer, CaptureMessage, $rootScope, FileUploader) {
+app.controller('MainController', ['CaptureConfigs', 'CaptureStorage', '$scope', 'JiraAPIs', 'CaptureListener', 'Drawer', 'CaptureMessage', '$rootScope', 'FileUploader', '$timeout', function (CaptureConfigs, CaptureStorage, $scope, JiraAPIs, CaptureListener, Drawer, CaptureMessage, $rootScope, FileUploader, $timeout) {
 
     // init
     var _init = function () {
@@ -767,7 +767,7 @@ app.controller('MainController', ['CaptureConfigs', 'CaptureStorage', '$scope', 
 
         async.parallel({
             issueId: function (callback) {
-                // return callback(null, 'DP-74');
+                // return callback(null, 'VP-52');
                 JiraAPIs.createIssue($scope.selected.projects, $scope.selected.issueTypes, $scope.selected.priorities, $scope.summary, $scope.description, $scope.includeEnv, function (resp) {
 
                     // TODO: display success message
@@ -792,13 +792,9 @@ app.controller('MainController', ['CaptureConfigs', 'CaptureStorage', '$scope', 
                     $scope.loading = 'Uploading attachments..';
 
                     JiraAPIs.attachScreenshotToIssue(results.issueId, results.screenshot, function (resp) {
-                        $scope.summary = '';
-                        $scope.description = '';
                         callback(null, results.issueId);
                     }, function (resp) {
                         // TODO: display error message
-                        $scope.summary = '';
-                        $scope.description = '';
                         callback(null, results.issueId);
                     });
                 },
@@ -832,13 +828,12 @@ app.controller('MainController', ['CaptureConfigs', 'CaptureStorage', '$scope', 
             }, function (err, finalResults) { // attach recording data
                 async.series([
                     function (callback) { // upload attached images
-                        $scope.loading = 'Uploading attached images..';
-
                         var items = $scope.uploader.queue;
                         if (!items.length) {
                             return callback(null, null);
                         }
 
+                        $scope.loading = 'Uploading attached images..';
                         JiraAPIs.attachImages(finalResults.issueId, items, function (resp) {
                             $scope.uploader.clearQueue();
                             return callback(null, null);
@@ -846,7 +841,6 @@ app.controller('MainController', ['CaptureConfigs', 'CaptureStorage', '$scope', 
                     },
                     function (callback) { // upload user actions data
                         if (!finalResults.recordingData) {
-                            $scope.actions = '';
                             return callback(null, null);
                         } else {
                             finalResults.recordingData.startUrl = finalResults.startUrl;
@@ -854,7 +848,6 @@ app.controller('MainController', ['CaptureConfigs', 'CaptureStorage', '$scope', 
 
                         $scope.loading = 'Uploading user actions data..';
                         JiraAPIs.attachRecordingData(finalResults.issueId, finalResults.recordingData, function (resp) {
-                            $scope.actions = '';
                             callback(null, null);
                         }, function (resp) {
                             // TODO: handle errors
@@ -862,26 +855,25 @@ app.controller('MainController', ['CaptureConfigs', 'CaptureStorage', '$scope', 
                         });
                     },
                     function (callback) { // uploading javascript errors data
-                        if (!$scope.includeJsErrors) {
-                            $scope.$apply(function () {
-                                $scope.loading = false;
-                            });
-                            return callback(null, null);
-                        }
-
-                        if (!$scope.consoleErrors || !$scope.consoleErrors.length) {
-                            $scope.$apply(function () {
-                                $scope.loading = false;
-                            });
+                        if (!$scope.includeJsErrors || !$scope.consoleErrors || !$scope.consoleErrors.length) {
                             return callback(null, null);
                         }
 
                         $scope.loading = 'Uploading javascript errors data..';
                         JiraAPIs.attachJavascriptErrors(finalResults.issueId, $scope.consoleErrors, function () {
-                            $scope.loading = false;
-                            $scope.consoleErrors = [];
                             return callback(null, null);
                         });
+                    },
+                    function (callback) {
+                        $timeout(function () {
+                            $scope.loading = false;
+                            $scope.actions = '';
+                            $scope.summary = '';
+                            $scope.description = '';
+                            $scope.consoleErrors = [];
+                        });
+
+                        return callback(null, null);
                     }
                 ]);
 
