@@ -89,7 +89,7 @@
 
                         <ul class="screenshots" ng-show="uploader.queue.length" ng-cloak>
                             <li ng-repeat="item in uploader.queue">
-                                <div class="thumb" ng-thumb="{ file: item._file, width: 230 }"></div>
+                                <div class="thumb" ng-thumb="{ file: item._file }"></div>
                                 <div class="name" title="{{ item.file.name }}">
                                     {{ item.file.name }}
                                 </div>

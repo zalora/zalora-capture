@@ -24,18 +24,28 @@ var ConsoleListener = (function () {
         },
         _getTime = function () {
             var temp = new Date();
-            return _padStr(temp.getFullYear()) + '-'
-                + _padStr(1 + temp.getMonth()) + '-'
-                + _padStr(temp.getDate()) + ' '
-                + _padStr(temp.getHours()) + ':'
-                + _padStr(temp.getMinutes()) + ':'
-                + _padStr(temp.getSeconds());
+            return _padStr(temp.getFullYear()) + '-' + _padStr(1 + temp.getMonth()) + '-' + _padStr(temp.getDate()) + ' ' + _padStr(temp.getHours()) + ':' + _padStr(temp.getMinutes()) + ':' + _padStr(temp.getSeconds());
         },
         _getStackTrace = function() {
             var obj = {};
             Error.captureStackTrace(obj, _getStackTrace);
             return obj.stack;
+        },
+        backupConsole = window.console,
+        generateLogFunc = function (func) {
+            return function () {
+                document.dispatchEvent(new CustomEvent('CaptureLog', {
+                    detail: {
+                        time: _getTime(),
+                        type: 'console.' + func,
+                        stack: _getStackTrace(),
+                        arguments: arguments
+                    }
+                }));
+                backupConsole[func].apply(backupConsole, arguments);
+            };
         };
+
 
         // listern error event
         window.addEventListener('error', function (error) {
@@ -54,29 +64,15 @@ var ConsoleListener = (function () {
 
 
         // override console's functions
-        var backupConsole = window.console;
-
         window.console = {
             logs: []
         };
 
-        for(var func in backupConsole) {
-            if(typeof backupConsole[func] === 'function') {
-                window.console[func] = (function (func) {
-                    return function () {
-                        document.dispatchEvent(new CustomEvent('CaptureLog', {
-                            detail: {
-                                time: _getTime(),
-                                type: 'console.' + func,
-                                stack: _getStackTrace(),
-                                arguments: arguments
-                            }
-                        }));
-                        backupConsole[func].apply(backupConsole, arguments);
-                    };
-                })(func);
+        for (var func in backupConsole) {
+            if (typeof backupConsole[func] === 'function') {
+                window.console[func] = generateLogFunc(func);
             }
-        };
+        }
     },
     _injectScript = function () {
         var script = document.createElement('script');

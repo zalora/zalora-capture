@@ -225,3 +225,8 @@ ul.screenshots .remove {
     font-size: 10px;
     font-weight: bold;
 }
+
+ul.screenshots img {
+    width: 100%;
+    height: auto;
+}

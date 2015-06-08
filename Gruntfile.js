@@ -26,7 +26,8 @@ module.exports  = function (grunt) {
                     Blob: true,
                     FormData: true,
                     Uint8Array: true,
-                    Prism: true
+                    Prism: true,
+                    FileReader: true
                 }
             }
         }

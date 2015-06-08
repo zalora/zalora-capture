@@ -369,11 +369,6 @@ app.directive('captureCanvas', ['Drawer', function (Drawer) {
     };
 }]);
 
-/**
-* The ng-thumb directive
-* @author: nerv
-* @version: 0.1.2, 2014-01-09
-*/
 app.directive('ngThumb', ['$window', function($window) {
     var helper = {
         support: !!($window.FileReader && $window.CanvasRenderingContext2D),
@@ -388,7 +383,7 @@ app.directive('ngThumb', ['$window', function($window) {
 
     return {
         restrict: 'A',
-        template: '<canvas/>',
+        template: '<img/>',
         link: function(scope, element, attributes) {
             if (!helper.support) return;
 
@@ -397,24 +392,13 @@ app.directive('ngThumb', ['$window', function($window) {
             if (!helper.isFile(params.file)) return;
             if (!helper.isImage(params.file)) return;
 
-            var canvas = element.find('canvas');
+            var img = element.find('img');
             var reader = new FileReader();
 
-            reader.onload = onLoadFile;
+            reader.onload = function (e) {
+                img.attr('src', e.target.result);
+            };
             reader.readAsDataURL(params.file);
-
-            function onLoadFile(event) {
-                var img = new Image();
-                img.onload = onLoadImage;
-                img.src = event.target.result;
-            }
-
-            function onLoadImage() {
-                var width = params.width || this.width / this.height * params.height;
-                var height = params.height || this.height / this.width * params.width;
-                canvas.attr({ width: width, height: height });
-                canvas[0].getContext('2d').drawImage(this, 0, 0, width, height);
-            }
         }
     };
 }]);
