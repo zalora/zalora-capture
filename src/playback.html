@@ -42,10 +42,27 @@
 
         <div id="playback-box" ng-show="scriptKeys.length && !loading" ng-cloak>
             <div class="form-group">
-                <label for="actions">User actions <font color="red">*</font></label>
+                <label for="actions">User actions</label>
                 <pre nag-prism source="{{actions}}" step="{{currentStep}}" class="line-numbers language-actions"></pre>
-
             </div>
+
+            <div class="form-group">
+                <label>Screenshots (for per action)</label>
+                <ul class="screenshots">
+                    <li ng-repeat="screenshot in screenshots" ng-show="$index == activeScreenshot">
+                        <img src="{{screenshot}}" alt="">
+                    </li>
+                </ul>
+
+                <span class="indicators-desc">Action</span>
+
+                <ul class="indicators" ng-init="activeScreenshot = 0">
+                    <li ng-repeat="n in [] | rangeObject:screenshots">
+                        <a href="" ng-click="setActiveScreenshot(n)" ng-class="{active: activeScreenshot == n}">{{n + 1 }}</a>
+                    </li>
+                </ul>
+            </div>
+
 
             <div class="form-group">
                 <label for="actions">Start URL</label>

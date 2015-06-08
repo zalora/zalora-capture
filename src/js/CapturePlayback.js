@@ -6,9 +6,8 @@
 
 'use strict';
 
-var playback = angular.module('CapturePlayback', ['Jira', 'ngPrism', 'CaptureConfigs', 'CaptureCommon', 'CaptureStorage']);
-
-playback.factory('PlaybackListener', ['$rootScope', 'CaptureMessage', function ($rootScope, CaptureMessage) {
+angular.module('CapturePlayback', ['Jira', 'ngPrism', 'CaptureConfigs', 'CaptureCommon', 'CaptureStorage'])
+.factory('PlaybackListener', ['$rootScope', 'CaptureMessage', function ($rootScope, CaptureMessage) {
     var _init = function () {
         CaptureMessage.addListener(_actions);
     },
@@ -30,9 +29,8 @@ playback.factory('PlaybackListener', ['$rootScope', 'CaptureMessage', function (
     return {
         actions: _actions
     };
-}]);
-
-playback.controller('MainController', ['$scope', 'JiraAPIs', 'PlaybackListener', '$rootScope', 'CaptureConfigs', 'CaptureStorage', function ($scope, JiraAPIs, PlaybackListener, $rootScope, CaptureConfigs, CaptureStorage) {
+}])
+.controller('MainController', ['$scope', 'JiraAPIs', 'PlaybackListener', '$rootScope', 'CaptureConfigs', 'CaptureStorage', function ($scope, JiraAPIs, PlaybackListener, $rootScope, CaptureConfigs, CaptureStorage) {
     $scope.projects = null;
     $scope.issues = null;
     $scope.scripts = null;
@@ -107,6 +105,7 @@ playback.controller('MainController', ['$scope', 'JiraAPIs', 'PlaybackListener',
             $scope.loading = null;
             $scope.actions = resp.script.join("\n").trim();
             $scope.startUrl = resp.startUrl;
+            $scope.screenshots = resp.screenshots;
 
             $scope.playbackData = resp;
         });
@@ -152,5 +151,22 @@ playback.controller('MainController', ['$scope', 'JiraAPIs', 'PlaybackListener',
 
         CaptureStorage.saveData({playbackWindowId: null});
     };
-}]);
 
+    $scope.setActiveScreenshot = function (n) {
+        $scope.activeScreenshot = n;
+    };
+}])
+.filter('rangeObject', function() {
+    return function(input, object) {
+        if (!object) {
+            return 0;
+        }
+
+        var total = Object.keys(object).length;
+        total = parseInt(total);
+        for (var i = 0; i < total; i++) {
+          input.push(i);
+        }
+        return input;
+    };
+});

@@ -20,3 +20,43 @@ form {
 #playback-box pre {
     overflow-y: scroll;
 }
+
+.screenshots {
+    list-style: none;
+    padding: 0;
+    margin-top: 10px;
+}
+
+.screenshots li {
+    width: 100%;
+}
+
+.screenshots img {
+    width: 100%;
+}
+
+.indicators-desc {
+    font-size: 12px;
+}
+
+.indicators {
+    list-style: none;
+    padding: 0;
+    display: inline-block;
+}
+
+.indicators li {
+    display: inline-block;
+    margin-right: 5px;
+}
+
+.indicators li a {
+    padding: 2px 5px;
+    font-size: 12px;
+    text-decoration: none;
+}
+
+.indicators li a.active {
+    background: #272727;
+    color: #fff;
+}
