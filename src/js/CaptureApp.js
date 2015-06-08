@@ -836,20 +836,17 @@ app.controller('MainController', ['CaptureConfigs', 'CaptureStorage', '$scope', 
 
                         var items = $scope.uploader.queue;
                         if (!items.length) {
-                            $scope.loading = false;
                             return callback(null, null);
                         }
 
                         JiraAPIs.attachImages(finalResults.issueId, items, function (resp) {
-                            $scope.loading = false;
                             $scope.uploader.clearQueue();
                             return callback(null, null);
                         });
                     },
                     function (callback) { // upload user actions data
                         if (!finalResults.recordingData) {
-                            $scope.loading = false;
-                                $scope.actions = '';
+                            $scope.actions = '';
                             return callback(null, null);
                         } else {
                             finalResults.recordingData.startUrl = finalResults.startUrl;
@@ -857,7 +854,6 @@ app.controller('MainController', ['CaptureConfigs', 'CaptureStorage', '$scope', 
 
                         $scope.loading = 'Uploading user actions data..';
                         JiraAPIs.attachRecordingData(finalResults.issueId, finalResults.recordingData, function (resp) {
-                            $scope.loading = false;
                             $scope.actions = '';
                             callback(null, null);
                         }, function (resp) {
@@ -867,12 +863,16 @@ app.controller('MainController', ['CaptureConfigs', 'CaptureStorage', '$scope', 
                     },
                     function (callback) { // uploading javascript errors data
                         if (!$scope.includeJsErrors) {
-                            $scope.loading = false;
+                            $scope.$apply(function () {
+                                $scope.loading = false;
+                            });
                             return callback(null, null);
                         }
 
-                        if (!$scope.consoleErrors.length) {
-                            $scope.loading = false;
+                        if (!$scope.consoleErrors || !$scope.consoleErrors.length) {
+                            $scope.$apply(function () {
+                                $scope.loading = false;
+                            });
                             return callback(null, null);
                         }
 
@@ -880,6 +880,7 @@ app.controller('MainController', ['CaptureConfigs', 'CaptureStorage', '$scope', 
                         JiraAPIs.attachJavascriptErrors(finalResults.issueId, $scope.consoleErrors, function () {
                             $scope.loading = false;
                             $scope.consoleErrors = [];
+                            return callback(null, null);
                         });
                     }
                 ]);

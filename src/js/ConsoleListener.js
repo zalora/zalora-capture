@@ -16,14 +16,33 @@ var ConsoleListener = (function () {
         // init error listener
         _errors = [];
         _injectScript();
-        document.addEventListener('CaptureError', _onError);
+        document.addEventListener('CaptureLog', _onError);
     },
     _initListener = function () {
-        window.addEventListener('error', function (error) {
-            // console.log(error);
+        var _padStr = function(i) {
+            return (i < 10) ? "0" + i : "" + i;
+        },
+        _getTime = function () {
+            var temp = new Date();
+            return _padStr(temp.getFullYear()) + '-'
+                + _padStr(1 + temp.getMonth()) + '-'
+                + _padStr(temp.getDate()) + ' '
+                + _padStr(temp.getHours()) + ':'
+                + _padStr(temp.getMinutes()) + ':'
+                + _padStr(temp.getSeconds());
+        },
+        _getStackTrace = function() {
+            var obj = {};
+            Error.captureStackTrace(obj, _getStackTrace);
+            return obj.stack;
+        };
 
-            document.dispatchEvent(new CustomEvent('CaptureError', {
+        // listern error event
+        window.addEventListener('error', function (error) {
+            document.dispatchEvent(new CustomEvent('CaptureLog', {
                 detail: {
+                    time: _getTime(),
+                    type: 'error',
                     stack: error.error ? error.error.stack : null,
                     url: error.filename,
                     line: error.lineno,
@@ -32,6 +51,32 @@ var ConsoleListener = (function () {
                 }
             }));
         });
+
+
+        // override console's functions
+        var backupConsole = window.console;
+
+        window.console = {
+            logs: []
+        };
+
+        for(var func in backupConsole) {
+            if(typeof backupConsole[func] === 'function') {
+                window.console[func] = (function (func) {
+                    return function () {
+                        document.dispatchEvent(new CustomEvent('CaptureLog', {
+                            detail: {
+                                time: _getTime(),
+                                type: 'console.' + func,
+                                stack: _getStackTrace(),
+                                arguments: arguments
+                            }
+                        }));
+                        backupConsole[func].apply(backupConsole, arguments);
+                    };
+                })(func);
+            }
+        };
     },
     _injectScript = function () {
         var script = document.createElement('script');
@@ -41,17 +86,13 @@ var ConsoleListener = (function () {
     },
     _onError = function (data) {
         _errors.push(data.detail);
-        // console.log('captureError', data);
-        // console.log(_errors);
     },
     _onMessage = function (request, sender, sendResponse) {
-        // console.log('[ConsoleListener] comming request > ', request, sender);
         if (typeof request.type === 'undefined' || typeof _messageActions[request.type] === 'undefined') {
             return false;
         }
 
         var resp = _messageActions[request.type](request.data);
-        // console.log('[ConsoleListener] send response > ', resp);
 
         sendResponse(resp);
     },

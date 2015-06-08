@@ -50,7 +50,9 @@
                 <label>Screenshots (for per action)</label>
                 <ul class="screenshots">
                     <li ng-repeat="screenshot in screenshots" ng-show="$index == activeScreenshot">
-                        <img src="{{screenshot}}" alt="">
+                        <a href="{{screenshot}}" target="__blank">
+                            <img src="{{screenshot}}" alt="">
+                        </a>
                     </li>
                 </ul>
 
