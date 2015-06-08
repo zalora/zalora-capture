@@ -157,4 +157,7 @@ angular.module('CaptureBackground', ['CaptureConfigs', 'CaptureStorage', 'Captur
 }])
 .controller('MainController', ['$scope', 'CaptureBackground', function ($scope, CaptureBackground) {
     CaptureBackground.init();
+
+    // using CaptureBackground service in RPF module
+    window.CaptureBackground = CaptureBackground;
 }]);
