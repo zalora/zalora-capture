@@ -37,3 +37,8 @@ grunt
 ```
 
 to run jshint tool.
+
+## User Guides
+
+- [For testers](https://github.com/zalora/zalora-capture/wiki/User-Guides-(for-testers))
+- [For developers](https://github.com/zalora/zalora-capture/wiki/User-Guides-(for-developers))
