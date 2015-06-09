@@ -659,8 +659,8 @@ app.controller('DrawController', ['CaptureConfigs', '$scope', 'Drawer', '$sce', 
                 scope.textlayerData = '';
             }
 
-            if (scope.textLayer.focus) {
-                !scope.$$phase && scope.$apply(function () {
+            if (scope.textLayer.focus && !scope.$$phase) {
+                scope.$apply(function () {
                     scope.textLayer.focus = false;
                 });
             }
