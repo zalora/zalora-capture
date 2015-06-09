@@ -19,7 +19,7 @@ app.config(['$httpProvider', function ($httpProvider) {
  * services
  */
 
-app.factory('CaptureListener', ['JiraAPIs', '$rootScope', 'CaptureLog', 'CaptureMessage', function (JiraAPIs, $rootScope, CaptureLog, CaptureMessage) {
+app.factory('CaptureListener', ['JiraAPIs', '$rootScope', 'CaptureLog', 'CaptureMessage', 'Drawer', function (JiraAPIs, $rootScope, CaptureLog, CaptureMessage, Drawer) {
     var _canvas = Snap('#draw-canvas'),
         _svgImage = null;
 
@@ -49,6 +49,9 @@ app.factory('CaptureListener', ['JiraAPIs', '$rootScope', 'CaptureLog', 'Capture
                     $rootScope.actions = resp.length ? resp.join('\n') : '';
                 });
             });
+
+            Drawer.reset();
+            Drawer.clearToolbox();
         },
         updateConsoleErrors: function (data) {
             $rootScope.$apply(function () {
@@ -187,6 +190,12 @@ app.factory('Tool', ['DrawSettings', 'CaptureLog', function (DrawSettings, Captu
         return this.activeElement.pStart.x == this.activeElement.pEnd.x && this.activeElement.pStart.y == this.activeElement.pEnd.y;
     };
 
+    Tool.prototype.runHook = function (hookName) {
+        if (this.params.hooks[hookName]) {
+            this.params.hooks[hookName].call(this);
+        }
+    };
+
     return Tool;
 }]);
 
@@ -208,6 +217,16 @@ app.factory('Drawer', ['JiraAPIs', 'Tool', function (JiraAPIs, Tool) {
             }
 
             _activeTool = tool;
+        },
+        onClickOnDocument: function () {
+            if (_activeTool) {
+                _tools[_activeTool].runHook('clickOnDocument');
+            }
+        },
+        clearToolbox: function () {
+            if (_activeTool) {
+                _tools[_activeTool].runHook('clearToolbox');
+            }
         },
         getTools: function () {
             return _tools;
@@ -351,6 +370,8 @@ app.directive('captureCanvas', ['Drawer', function (Drawer) {
 
                 var data = _convertCoords(event);
                 _eventHanders('mousedown', data.x, data.y);
+
+                event.stopPropagation();
             });
 
             $element.on('mouseup', function (event) {
@@ -608,6 +629,17 @@ app.controller('DrawController', ['CaptureConfigs', '$scope', 'Drawer', '$sce', 
                     this.render();
                 }
             },
+            clickOnDocument: function () {
+                if (this.activeElement) {
+                    this.render();
+                    this.handlers.scope.textLayer.isShow = false;
+                }
+            },
+            clearToolbox: function () {
+                this.handlers.scope.textLayer.isShow = false;
+                this.handlers.scope.textLayerData = '';
+                this.handlers.scope.focus = false;
+            }
         },
         render: function () {
             var scope = this.handlers.scope;
@@ -628,7 +660,7 @@ app.controller('DrawController', ['CaptureConfigs', '$scope', 'Drawer', '$sce', 
             }
 
             if (scope.textLayer.focus) {
-                scope.$apply(function () {
+                !scope.$$phase && scope.$apply(function () {
                     scope.textLayer.focus = false;
                 });
             }
@@ -840,12 +872,12 @@ app.controller('MainController', ['CaptureConfigs', 'CaptureStorage', '$scope', 
                             callback(null, null);
                         });
                     },
-                    function (callback) { // uploading javascript errors data
+                    function (callback) { // uploading console logs data
                         if (!$scope.includeConsoleLogs || !$scope.consoleLogs || !$scope.consoleLogs.length) {
                             return callback(null, null);
                         }
 
-                        $scope.loading = 'Uploading javascript errors data..';
+                        $scope.loading = 'Uploading console logs data..';
                         JiraAPIs.attachJavascriptErrors(finalResults.issueId, $scope.consoleLogs, function () {
                             return callback(null, null);
                         });
@@ -865,6 +897,10 @@ app.controller('MainController', ['CaptureConfigs', 'CaptureStorage', '$scope', 
 
             });
         });
+    };
+
+    $rootScope.onClickOnDocument = function () {
+        Drawer.onClickOnDocument();
     };
 
     _init();
