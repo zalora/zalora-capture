@@ -10,7 +10,7 @@
 angular.module('CaptureConfigs', [])
 .factory('CaptureConfigs', ['$rootScope', '$sce', function ($rootScope, $sce) {
     var _configs = {
-        debugMode: true,
+        debugMode: false,
         liveReload: false,
         serverUrl: 'https://zalora.atlassian.net',
         canvas: {
