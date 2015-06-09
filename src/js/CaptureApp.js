@@ -51,7 +51,9 @@ app.factory('CaptureListener', ['JiraAPIs', '$rootScope', 'CaptureLog', 'Capture
             });
         },
         updateConsoleErrors: function (data) {
-            $rootScope.consoleErrors = data;
+            $rootScope.$apply(function () {
+                $rootScope.consoleLogs = data;
+            });
         }
     };
 
@@ -709,7 +711,7 @@ app.controller('MainController', ['CaptureConfigs', 'CaptureStorage', '$scope', 
         _initUploader();
 
         $scope.includeEnv = true;
-        $scope.includeJsErrors = true;
+        $scope.includeConsoleLogs = true;
     },
     _initUploader = function () {
         var uploader = $rootScope.uploader = new FileUploader({});
@@ -839,12 +841,12 @@ app.controller('MainController', ['CaptureConfigs', 'CaptureStorage', '$scope', 
                         });
                     },
                     function (callback) { // uploading javascript errors data
-                        if (!$scope.includeJsErrors || !$scope.consoleErrors || !$scope.consoleErrors.length) {
+                        if (!$scope.includeConsoleLogs || !$scope.consoleLogs || !$scope.consoleLogs.length) {
                             return callback(null, null);
                         }
 
                         $scope.loading = 'Uploading javascript errors data..';
-                        JiraAPIs.attachJavascriptErrors(finalResults.issueId, $scope.consoleErrors, function () {
+                        JiraAPIs.attachJavascriptErrors(finalResults.issueId, $scope.consoleLogs, function () {
                             return callback(null, null);
                         });
                     },
@@ -854,7 +856,7 @@ app.controller('MainController', ['CaptureConfigs', 'CaptureStorage', '$scope', 
                             $scope.actions = '';
                             $scope.summary = '';
                             $scope.description = '';
-                            $scope.consoleErrors = [];
+                            $scope.consoleLogs = [];
                         });
 
                         return callback(null, null);

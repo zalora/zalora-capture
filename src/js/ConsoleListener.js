@@ -82,6 +82,7 @@ var ConsoleListener = (function () {
     },
     _onError = function (data) {
         _errors.push(data.detail);
+        // console.log('_errors', _errors);
     },
     _onMessage = function (request, sender, sendResponse) {
         if (typeof request.type === 'undefined' || typeof _messageActions[request.type] === 'undefined') {
