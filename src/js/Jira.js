@@ -56,9 +56,34 @@ jira.factory('JiraAPIs', ['$http', '$filter', 'CaptureConfigs', 'CaptureStorage'
         }
         return data;
     },
+    _filterProject = function (data) {
+        var projects = [],
+            filter,
+            serverName,
+            filterProjects;
+
+        filter = CaptureConfigs.get('projectFilter');
+        serverName = CaptureConfigs.get('serverName');
+        if (!filter[serverName]) {
+            return data;
+        }
+
+        filterProjects = filter[serverName];
+
+        for (var i = 0; i < data.length; i++) {
+            if (filterProjects.indexOf(data[i].key) !== -1) {
+                projects.push(data[i]);
+            }
+        }
+
+        return projects;
+    },
     _fetchAllAtlassianInfo = function (callback) {
         angular.forEach(_configs.APIs.info, function(value, key){
             _basicGet(value, function (resp) {
+                if (key == 'projects') {
+                    resp = _filterProject(resp);
+                }
                 callback(key, resp);
             });
         });

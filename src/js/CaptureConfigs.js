@@ -12,7 +12,16 @@ angular.module('CaptureConfigs', [])
     var _configs = {
         debugMode: false,
         liveReload: false,
-        serverUrl: 'https://zalora.atlassian.net',
+        serverName: 'zalora',
+        serverUrl: 'https://{serverName}.atlassian.net',
+        projectFilter: {
+            'zalora': [
+                'CORE',
+                'SEAOPS',
+                'SHOP',
+                'ZOPS'
+            ]
+        },
         canvas: {
             colors: ['#c0392b', '#d35400', '#f39c12', '#f1c40f', '#16a085', '#2cc36b', '#2980b9', '#8e44ad', '#2c3e50', '#ecf0f1']
         },
@@ -69,6 +78,8 @@ angular.module('CaptureConfigs', [])
         if (_configs.liveReload) {
             _initLiveReload();
         }
+
+        _configs.serverUrl = _configs.serverUrl.replace('{serverName}', _configs.serverName);
     };
 
     _init();
