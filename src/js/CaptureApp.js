@@ -45,6 +45,7 @@ app.factory('CaptureListener', ['JiraAPIs', '$rootScope', 'CaptureLog', 'Capture
             image.src = data;
 
             CaptureMessage.sendMessage('getUserActions', null, function (resp) {
+                CaptureLog.log('getUserActions', resp);
                 $rootScope.$apply(function () {
                     $rootScope.actions = resp.length ? resp.join('\n') : '';
                 });
@@ -885,10 +886,10 @@ app.controller('MainController', ['CaptureConfigs', 'CaptureStorage', '$scope', 
                     function (callback) {
                         $timeout(function () {
                             $scope.loading = false;
-                            $scope.actions = '';
+                            $rootScope.actions = '';
                             $scope.summary = '';
                             $scope.description = '';
-                            $scope.consoleLogs = [];
+                            $rootScope.consoleLogs = [];
                         });
 
                         return callback(null, null);
