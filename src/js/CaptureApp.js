@@ -783,6 +783,7 @@ app.controller('MainController', ['CaptureConfigs', 'CaptureStorage', '$scope', 
 
     $scope.saveIssue = function () {
         $scope.loading = 'Creating issue..';
+        $scope.issueError = false;
 
         async.parallel({
             issueId: function (callback) {
@@ -794,6 +795,7 @@ app.controller('MainController', ['CaptureConfigs', 'CaptureStorage', '$scope', 
 
                     callback(null, resp.id);
                 }, function (resp) {
+                    console.log(resp, 'error');
                     callback(null, null);
                 });
 
@@ -808,6 +810,14 @@ app.controller('MainController', ['CaptureConfigs', 'CaptureStorage', '$scope', 
             async.series({
                 issueId: function (callback) { // attach screenshot
                     // return callback(null, results.issueId);
+                    if (!results.issueId) {
+                        // TODO: handle the error!
+                        $scope.loading = false;
+                        $scope.newIssue = false;
+                        $scope.issueError = "Can not create this issue type in this project! Please reconfig 'Issue Type Schemes' in JIRA.";
+                        return callback(true, null);
+                    }
+
                     $scope.loading = 'Uploading attachments..';
 
                     JiraAPIs.attachScreenshotToIssue(results.issueId, results.screenshot, function (resp) {
@@ -845,6 +855,10 @@ app.controller('MainController', ['CaptureConfigs', 'CaptureStorage', '$scope', 
                     });
                 }
             }, function (err, finalResults) { // attach recording data
+                if (!finalResults.issueId) {
+                    return false;
+                }
+
                 async.series([
                     function (callback) { // upload attached images
                         var items = $scope.uploader.queue;
