@@ -2,6 +2,7 @@
   "name": "zalora-capture",
   "version": "0.1.0",
   "devDependencies": {
+    "bower": "*",
     "grunt": "*",
     "grunt-contrib-jshint": "*",
     "grunt-contrib-jshint": "*",
