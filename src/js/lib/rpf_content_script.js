@@ -12146,7 +12146,7 @@ rpf.ContentScript.RecordHelper.prototype.dblClickHandler_ = function(a) {
   this.sendActionBack(this.elemUnderCursor_, this.elemDescriptor_.getText(this.elemUnderCursor_), "doubleClick", a)
 };
 rpf.ContentScript.RecordHelper.prototype.onRequest = function(a, b) {
-  console.log("[request]", a, b);
+  // console.log("[request]", a, b);
   switch(a.recordAction) {
     case Bite.Constants.RECORD_ACTION.START_RECORDING:
       this.rootArr_ = a.params.rootArr;
