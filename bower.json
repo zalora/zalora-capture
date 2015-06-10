@@ -17,8 +17,8 @@
     "async": "*",
     "font-awesome": "*",
     "angular-material": "*",
-    "bootstrap": "~3.3.4",
-    "angularjs": "*",
+    "bootstrap": "*",
+    "angularjs": "1.4.0",
     "angular-file-upload": "*",
     "snap.svg": "*"
   }
