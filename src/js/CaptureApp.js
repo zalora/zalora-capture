@@ -920,4 +920,3 @@ app.controller('MainController', ['CaptureConfigs', 'CaptureStorage', '$scope', 
 
     _init();
 }]);
-
