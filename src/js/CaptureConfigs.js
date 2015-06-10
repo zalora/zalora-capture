@@ -10,9 +10,9 @@
 angular.module('CaptureConfigs', [])
 .factory('CaptureConfigs', ['$rootScope', '$sce', function ($rootScope, $sce) {
     var _configs = {
-        debugMode: true,
-        liveReload: true,
-        serverName: 'lehungvinh',
+        debugMode: false,
+        liveReload: false,
+        serverName: 'zalora',
         serverUrl: 'https://{serverName}.atlassian.net',
         projectFilter: {
             'zalora': [ // project KEY
