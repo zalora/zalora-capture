@@ -1,6 +1,6 @@
 {
   "name": "Zalora Capture",
-  "version": "0.0.7",
+  "version": "0.1.0",
   "manifest_version": 2,
   "description": "Reporting bugs from Chrome Browser",
   "homepage_url": "http://zalora.vn",
@@ -36,5 +36,5 @@
     "notifications",
     "<all_urls>"
   ],
-  "content_security_policy": "script-src 'self' 'unsafe-eval' http://localhost:35729 https://d1n0x3qji82z53.cloudfront.net; object-src 'self'"
+  "content_security_policy": "script-src 'self' 'unsafe-eval' http://localhost:35729; object-src 'self'"
 }
