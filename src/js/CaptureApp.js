@@ -814,7 +814,7 @@ app.controller('MainController', ['CaptureConfigs', 'CaptureStorage', '$scope', 
                         // TODO: handle the error!
                         $scope.loading = false;
                         $scope.newIssue = false;
-                        $scope.issueError = "Can not create this issue type in this project! Please reconfig 'Issue Type Schemes' in JIRA.";
+                        $scope.issueError = "Can not create this issue type in this project! Please reconfig 'Issue Type Schemes' in JIRA or choose a difference issue type.";
                         return callback(true, null);
                     }
 
