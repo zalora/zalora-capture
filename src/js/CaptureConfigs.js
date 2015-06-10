@@ -91,7 +91,7 @@ angular.module('CaptureConfigs', [])
     return {
         get: function (group, key) {
             if (typeof _configs[group] === 'undefined') {
-                throw "No group config '" + group + "'  available!";
+                throw "No group config '" + group + "' available!";
             }
 
             if (typeof key === 'undefined') {
