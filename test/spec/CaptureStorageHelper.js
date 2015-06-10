@@ -1,15 +1,20 @@
 describe('Capture Storage Test', function () {
     var result;
 
+    beforeEach(module('CaptureStorage'));
+
     beforeEach(function (done) {
-        CaptureStorage.saveData({
-            a: 6,
-            b: 11
-        }, function (resp) {
-            CaptureStorage.getData('a', function (resp) {
-                result = resp;
-                done();
+        inject(function (CaptureStorage) {
+            CaptureStorage.saveData({
+                a: 6,
+                b: 11
+            }, function (resp) {
+                CaptureStorage.getData('a', function (resp) {
+                    result = resp;
+                    done();
+                });
             });
+            console.log('ok');
         });
     });
 

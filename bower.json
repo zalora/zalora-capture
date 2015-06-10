@@ -19,7 +19,8 @@
     "angular-material": "*",
     "bootstrap": "*",
     "angular-file-upload": "*",
-    "snap.svg": "*"
+    "snap.svg": "*",
+    "angular-mocks": "*"
   },
   "resolutions": {
     "angular": "1.4.0"
