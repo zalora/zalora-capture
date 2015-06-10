@@ -16,9 +16,8 @@
   "dependencies": {
     "async": "*",
     "font-awesome": "*",
-    "angular-material": "*",
+    "angular-material": "0.9.8",
     "bootstrap": "*",
-    "angularjs": "1.4.0",
     "angular-file-upload": "*",
     "snap.svg": "*"
   }
