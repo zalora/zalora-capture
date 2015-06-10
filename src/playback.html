@@ -46,12 +46,13 @@
                 <pre nag-prism source="{{actions}}" step="{{currentStep}}" class="line-numbers language-actions"></pre>
             </div>
 
-            <div class="form-group">
-                <label>Screenshots (for per action)</label>
+            <div class="form-group" ng-show="screenshots" ng-cloak>
+                <label>Screenshots</label>
                 <ul class="screenshots">
-                    <li ng-repeat="screenshot in screenshots" ng-show="$index == activeScreenshot">
-                        <a href="{{screenshot}}" target="__blank">
+                    <li ng-repeat="(title, screenshot) in screenshots" ng-show="$index == activeScreenshot">
+                        <a title="{{title}}" href="{{screenshot}}" target="__blank">
                             <img src="{{screenshot}}" alt="">
+                            <span>{{title}}</span>
                         </a>
                     </li>
                 </ul>

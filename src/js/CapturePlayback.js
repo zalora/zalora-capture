@@ -7,6 +7,10 @@
 'use strict';
 
 angular.module('CapturePlayback', ['Jira', 'ngPrism', 'CaptureConfigs', 'CaptureCommon', 'CaptureStorage'])
+.config([ '$compileProvider', function ($compileProvider) {
+        $compileProvider.aHrefSanitizationWhitelist(/^\s*(https?|ftp|mailto|chrome-extension|data):/);
+    }
+])
 .factory('PlaybackListener', ['$rootScope', 'CaptureMessage', function ($rootScope, CaptureMessage) {
     var _init = function () {
         CaptureMessage.addListener(_actions);
@@ -20,6 +24,15 @@ angular.module('CapturePlayback', ['Jira', 'ngPrism', 'CaptureConfigs', 'Capture
         updateCurrentStep: function (resp) {
             $rootScope.$apply(function () {
                 $rootScope.currentStep = resp.curStep + 1;
+            });
+        },
+        updateWhenOnFailed: function (resp) {
+            $rootScope.$apply(function () {
+                $rootScope.currentStep = resp.currentStep;
+                $rootScope.playbackStatus.push({
+                    text: 'Failed to execute this command!',
+                    color: 'red'
+                });
             });
         }
     };

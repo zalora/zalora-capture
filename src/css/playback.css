@@ -56,6 +56,17 @@ form {
     text-decoration: none;
 }
 
+.screenshots li a span {
+    margin-top: 5px;
+    color: #999;
+    display: inline-block;
+    font-size: 12px;
+}
+
+.screenshots li a:hover span{
+    text-decoration: none;
+}
+
 .indicators li a.active {
     background: #272727;
     color: #fff;

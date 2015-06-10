@@ -11088,7 +11088,7 @@ rpf.PlayBackManager.prototype.checkReadyForNext_ = function() {
   var a = this.checkPageReady_(), b = this.isPreCmdDone(), c = this.checkSleepReady_(), d = this.checkUserPauseReady_(), e = "";
   this.elapsedTime_ = "";
   0 != this.startTimeEachRun_ && this.setElapseTime_();
-  a || (e = "The url change has not finished (If this is an issue, you could click the pause button and then delete or insert new recordings). Elapsed: " + this.elapsedTime_, console.log(e), this.updateRuntimeStatus_(e, "red"));
+  a || (e = "The url change has not finished.Elapsed: " + this.elapsedTime_, console.log(e), this.updateRuntimeStatus_(e, "red"));
   b || (e = "The previous command has not finished. Elapsed: " + this.elapsedTime_, console.log(e), this.updateRuntimeStatus_(e, "red"));
   c || (e = "Still waiting for the sleep. Elapsed: " + this.elapsedTime_, console.log(e), this.updateRuntimeStatus_(e, "black"));
   d || console.log("Waiting for user pause");
@@ -11572,7 +11572,7 @@ rpf.EventsManager.prototype.generateCmdBasedOnRecording_ = function(a) {
   goog.Timer.callOnce(goog.bind(this.writeUserActionToConsole, this, d, b, a.nodeType, c, a.descriptor, a.elemVarName, -1, f, e, a.mode, a.className), h)
 };
 rpf.EventsManager.prototype.callBackOnRequest = function(a, b) {
-  console.log("[callBackOnRequest]", a, b);
+  console.log("[callBackOnRequest]", a.command, a.params, b);
   if(a.command) {
     switch(a.command) {
       case rpf.EventsManager.CmdTypes_.GET_ACTION_INFO:
@@ -11682,7 +11682,7 @@ rpf.EventsManager.prototype.dispatchEventOnAutomator_ = function(a) {
   this.workerAutomator_.getEventTarget().dispatchEvent(a)
 };
 rpf.EventsManager.prototype.callBackOnMessageReceived = function(a, b, c) {
-  console.log("[callBackOnMessageReceived]", a, b);
+  console.log("[callBackOnMessageReceived]", a.command, a.params, b);
   if(a.command) {
     var d = a.params;
     switch(a.command) {
@@ -12076,10 +12076,9 @@ rpf.EventsManager.prototype.sendMessageToConsole_ = function(a) {
     switch(a.command) {
       case Bite.Constants.UiCmds.ADD_GENERATED_CMD:
         b.getScreenshotManager().addGeneratedCmd(a.params.cmd);
-        console.log(b.getScreenshotManager().getGeneratedCmds());
         break;
       case Bite.Constants.UiCmds.ADD_NEW_COMMAND:
-        a.params.cmdMap && (bite.console.Helper.assignInfoMap(b.infoMap, a.params.cmdMap), b.getScreenshotManager().addIndex(a.params.cmdMap.id), a.params.dCmd && b.dataFile.push(a.params.dCmd));
+        a.params.cmdMap ? (bite.console.Helper.assignInfoMap(b.infoMap, a.params.cmdMap), b.getScreenshotManager().addIndex(a.params.cmdMap.id), a.params.dCmd && b.dataFile.push(a.params.dCmd)) : b.getScreenshotManager().addGeneratedCmd(a.params.pCmd);
         break;
       case Bite.Constants.UiCmds.ADD_SCREENSHOT:
         b.getScreenshotManager().addScreenShot(a.params.dataUrl, a.params.iconUrl);
@@ -12088,7 +12087,10 @@ rpf.EventsManager.prototype.sendMessageToConsole_ = function(a) {
         (b = CaptureBackground.getPlaybackTabId()) && chrome.tabs.sendMessage(b, {type:"updatePlaybackStatus", data:a.params});
         break;
       case Bite.Constants.UiCmds.UPDATE_CURRENT_STEP:
-        (b = CaptureBackground.getPlaybackTabId()) && chrome.tabs.sendMessage(b, {type:"updateCurrentStep", data:a.params})
+        (b = CaptureBackground.getPlaybackTabId()) && chrome.tabs.sendMessage(b, {type:"updateCurrentStep", data:a.params});
+        break;
+      case Bite.Constants.UiCmds.UPDATE_WHEN_ON_FAILED:
+        (b = CaptureBackground.getPlaybackTabId()) && chrome.tabs.sendMessage(b, {type:"updateWhenOnFailed", data:a.params})
     }
   }
 };
