@@ -32,7 +32,7 @@ Two dependency files is generated from this repository https://github.com/vinhlh
 - Change `serverName` to `zalora`.
 - Check your project is already in projectFilter (define valid projects of a serverName) list or not. If not, add your project key into this list.
 
-## Use
+## Usage
 
 - Click `Extension Button` on Chrome navigation bar on any web page to reporting bugs.
 
