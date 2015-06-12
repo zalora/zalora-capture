@@ -57,7 +57,7 @@ angular.module('CapturePlayback', ['Jira', 'ngPrism', 'CaptureConfigs', 'Capture
 
     $scope.loading = 'Fetching project list..';
     JiraAPIs.getProjects(function (resp) {
-        $scope.projects = resp;
+        $scope.projects = JiraAPIs.filterProject(resp);
         $scope.loading = null;
 
         if ($scope.projects.length) {

@@ -279,6 +279,7 @@ jira.factory('JiraAPIs', ['$http', '$filter', 'CaptureConfigs', 'CaptureStorage'
         getAttachments: _getAttachments,
         getScripts: _getScripts,
         getJsonFromUrl: _getJsonFromUrl,
-        setServer: _setServer
+        setServer: _setServer,
+        filterProject: _filterProject
     };
 }]);
