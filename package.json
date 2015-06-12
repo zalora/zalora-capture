@@ -6,9 +6,14 @@
     "bower": "*",
     "grunt": "*",
     "grunt-contrib-jshint": "*",
-    "grunt-contrib-jshint": "*",
-    "grunt-contrib-nodeunit": "*",
-    "grunt-contrib-uglify": "*"
+    "grunt-contrib-uglify": "*",
+    "grunt-contrib-htmlmin": "*",
+    "grunt-contrib-cssmin": "*",
+    "grunt-contrib-copy": "*",
+    "grunt-contrib-compress": "*",
+    "grunt-contrib-clean": "*",
+    "grunt-contrib-concat": "*",
+    "grunt-usemin": "*"
   },
   "scripts": {
     "postinstall": "bower install"
