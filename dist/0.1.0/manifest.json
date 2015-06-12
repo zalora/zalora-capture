@@ -36,5 +36,5 @@
     "notifications",
     "<all_urls>"
   ],
-  "content_security_policy": "script-src 'self' 'unsafe-eval' http://localhost:35729; object-src 'self'"
+  "content_security_policy": "script-src 'self' 'unsafe-eval' http://localhost:35729 https://ssl.google-analytics.com; object-src 'self'"
 }

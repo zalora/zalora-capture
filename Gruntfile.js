@@ -35,7 +35,8 @@ module.exports  = function (grunt) {
                     FormData: true,
                     Uint8Array: true,
                     Prism: true,
-                    FileReader: true
+                    FileReader: true,
+                    _gaq: true
                 }
             }
         },
@@ -54,7 +55,8 @@ module.exports  = function (grunt) {
                             'manifest.json',
                             'src/images/**/*.png',
                             'src/*.html',
-                            'src/js/lib/*.js'
+                            'src/js/lib/*.js',
+                            'src/js/ga.js'
                         ],
                         dest: _configs.dist
                     },

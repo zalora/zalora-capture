@@ -8,7 +8,7 @@
 'use strict';
 
 angular.module('CapturePopup', ['Jira', 'ngMaterial', 'CaptureConfigs', 'CaptureStorage', 'CaptureCommon'])
-.controller('MainController', ['$scope', 'JiraAPIs', 'CaptureConfigs', 'CaptureStorage', 'CaptureLog', function ($scope, JiraAPIs, CaptureConfigs, CaptureStorage, CaptureLog) {
+.controller('MainController', ['$scope', 'JiraAPIs', 'CaptureConfigs', 'CaptureStorage', 'CaptureLog', '$window', function ($scope, JiraAPIs, CaptureConfigs, CaptureStorage, CaptureLog, $window) {
     var _init = function () {
         $scope.user = null;
         $scope.server = CaptureConfigs.get('serverUrl');
@@ -69,6 +69,10 @@ angular.module('CapturePopup', ['Jira', 'ngMaterial', 'CaptureConfigs', 'Capture
     };
 
     $scope.setRecordingTab = function () {
+        if (typeof $window._gaq !== 'undefined') {
+            $window._gaq.push(['_trackEvent', 'startRecord', 'clicked']);
+        }
+
         chrome.tabs.query({active: true, currentWindow: true}, function (tab) {
             chrome.runtime.sendMessage({// createRpfWindow
                 type: 'setRecordingTab',
@@ -99,6 +103,10 @@ angular.module('CapturePopup', ['Jira', 'ngMaterial', 'CaptureConfigs', 'Capture
     };
 
     $scope.stopRecord = function () {
+        if (typeof $window._gaq !== 'undefined') {
+            $window._gaq.push(['_trackEvent', 'stopRecord', 'clicked']);
+        }
+
         chrome.runtime.sendMessage({
             type: 'stopRecording'
         }, function (resp) {
