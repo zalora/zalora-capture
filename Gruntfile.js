@@ -109,7 +109,11 @@ module.exports  = function (grunt) {
                 // sourceMap: true
                 compress: {
                     drop_console: true
-                }
+                },
+                beautify: {
+                    ascii_only: true
+                },
+                ASCIIOnly: true
             },
             dist: {
                 files: [{
