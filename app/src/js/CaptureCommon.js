@@ -5,7 +5,13 @@
  * @copyright June 2015
  */
 
-'use strict';
+(function () {
+    'use strict';
+
+    // angular
+    //     .module('CaptureCommon', ['CaptureConfigs'])
+    //     .factory('CaptureMessage'
+})();
 
 angular.module('CaptureCommon', ['CaptureConfigs'])
 .factory('CaptureMessage', ['CaptureLog', function (CaptureLog) {
