@@ -24,7 +24,7 @@
             attachScreenshotToIssue: attachScreenshotToIssue,
             attachRecordingData: attachRecordingData,
             attachJavascriptErrors: attachJavascriptErrors,
-            attachImages: attachImages,
+            attachFiles: attachFiles,
             generateMetaData: generateMetaData,
             logOut: logOut,
             getProjects: getProjects,
@@ -242,7 +242,7 @@
             addAttachmentToIssue(key, dataURLToBlob(data), 'Screen Shot %s.png', onSuccess, onError);
         }
 
-        function attachImages (key, files, onSuccess, onError) {
+        function attachFiles (key, files, onSuccess, onError) {
             addMultipleAttachmentsToIssue(key, files, onSuccess, onError);
         }
 

@@ -12,10 +12,10 @@
         .module('app.report')
         .directive('zcThumb', zcThumb);
 
-    zcThumb.$inject = ['$window'];
+    zcThumb.$inject = ['$window', '$compile'];
 
     /* @ngInject */
-    function zcThumb ($window) {
+    function zcThumb ($window, $compile) {
         // Usage:
         //
         // Creates:
@@ -55,6 +55,8 @@
             }
 
             if (!helper.isImage(params.file)) {
+                element.html('[non-image]');
+                $compile(element.contents())(scope);
                 return false;
             }
 

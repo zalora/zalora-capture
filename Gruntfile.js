@@ -59,7 +59,8 @@ module.exports  = function (grunt) {
                             'manifest.json',
                             'src/images/**/*.png',
                             'src/*.html',
-                            'src/js/third-party/*.js'
+                            'src/js/third-party/*.js',
+                            'src/templates/*.*'
                         ],
                         dest: _configs.dist
                     },

@@ -12,10 +12,10 @@
         .module('app.report')
         .controller('ReportController', ReportController);
 
-    ReportController.$inject = ['configService', 'storageService', 'jiraService', 'reportService', 'drawService', 'chromeService', 'asyncService', '$scope', '$rootScope', '$timeout', 'FileUploader'];
+    ReportController.$inject = ['configService', 'storageService', 'jiraService', 'reportService', 'drawService', 'chromeService', 'asyncService', '$scope', '$rootScope', '$timeout', 'FileUploader', 'templateService'];
 
     /* @ngInject */
-    function ReportController(configService, storageService, jiraService, reportService, drawService, chromeService, asyncService, $scope, $rootScope, $timeout, FileUploader) {
+    function ReportController(configService, storageService, jiraService, reportService, drawService, chromeService, asyncService, $scope, $rootScope, $timeout, FileUploader, templateService) {
         var vm = this;
 
         init();
@@ -66,19 +66,22 @@
                 drawService.onClickOnDocument();
             };
 
+            initTemplates();
+
             initUploader();
         }
 
         function initUploader () {
             vm.uploader = new FileUploader({});
 
-            vm.uploader.filters.push({
-                name: 'imageFilter',
-                fn: function(item /*{File|FileLikeObject}*/, options) {
-                    var type = '|' + item.type.slice(item.type.lastIndexOf('/') + 1) + '|';
-                    return '|jpg|png|jpeg|bmp|gif|'.indexOf(type) !== -1;
-                }
-            });
+            // filter image types
+            // vm.uploader.filters.push({
+            //     name: 'imageFilter',
+            //     fn: function(item /*{File|FileLikeObject}*/, options) {
+            //         var type = '|' + item.type.slice(item.type.lastIndexOf('/') + 1) + '|';
+            //         return '|jpg|png|jpeg|bmp|gif|'.indexOf(type) !== -1;
+            //     }
+            // });
         }
 
         function removeInfoMapRedundant (infoMap, script, screenshots) {
@@ -183,16 +186,19 @@
                     }
 
                     asyncService.series([
-                        function (callback) { // upload attached images
+                        function (callback) { // upload attached files
                             var items = vm.uploader.queue;
                             if (!items.length) {
                                 return callback(null, null);
                             }
 
-                            vm.loading = 'Uploading attached images..';
-                            jiraService.attachImages(finalResults.issueId, items, function (resp) {
+                            vm.loading = 'Uploading attached files..';
+                            jiraService.attachFiles(finalResults.issueId, items, function (resp) {
                                 vm.uploader.clearQueue();
                                 return callback(null, null);
+                            }, function () {
+                                vm.issueError = 'There are an unknown error with attach files!'
+                                return callback(true, null);
                             });
                         },
                         function (callback) { // upload user actions data
@@ -234,6 +240,18 @@
                     ]);
 
                 });
+            });
+        };
+
+        function initTemplates () {
+            vm.templates = templateService.getList();
+
+            vm.selected['template'] = 'blank';
+        }
+
+        vm.onTemplateChange = function () {
+            templateService.getContent(vm.selected['template'], function (resp) {
+                vm.description = resp;
             });
         };
     }

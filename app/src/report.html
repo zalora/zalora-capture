@@ -9,7 +9,7 @@
         <link rel="stylesheet" type="text/css" href="../bower_components/font-awesome/css/font-awesome.min.css">
         <link rel="stylesheet" type="text/css" href="../bower_components/angular/angular-csp.css">
         <link rel="stylesheet" type="text/css" href="css/common.css">
-        <link rel="stylesheet" type="text/css" href="css/app.css">
+        <link rel="stylesheet" type="text/css" href="css/report.css">
         <!-- endbuild -->
 
         <script src="js/third-party/ga.js"></script>
@@ -96,17 +96,22 @@
                     </div>
 
                     <div class="form-group">
+                        <label for="summary">Template <font color="red">*</font></label>
+                        <select name="priority" id="priority" class="form-control" required="required" ng-model="vm.selected['template']" ng-options="template.id as template.name for template in vm.templates" ng-change="vm.onTemplateChange()"></select>
+                    </div>
+
+                    <div class="form-group">
                         <label for="summary">Summary <font color="red">*</font></label>
                         <textarea ng-model="vm.summary" name="summary" id="summary" class="form-control" required="required" rows="2"></textarea>
                     </div>
 
                     <div class="form-group">
                         <label for="description">Description <font color="red">*</font></label>
-                        <textarea ng-model="vm.description" name="description" id="description" class="form-control" required="required" rows="6"></textarea>
+                        <textarea ng-model="vm.description" name="description" id="description" class="form-control" required="required" rows="10"></textarea>
                     </div>
 
                     <div class="form-group">
-                        <label for="screenshots">Other screenshots <font color="red">*</font></label>
+                        <label for="screenshots">Attach files <font color="red">*</font></label>
                         <input type="file" nv-file-select="" uploader="vm.uploader" multiple>
 
                         <ul class="screenshots" ng-show="vm.uploader.queue.length" ng-cloak>
@@ -178,6 +183,7 @@
 
         <script src="js/report/report.module.js"></script>
         <script src="js/report/report.service.js"></script>
+        <script src="js/report/template.service.js"></script>
         <script src="js/report/report.controller.js"></script>
         <script src="js/report/zc-thumb.directive.js"></script>
         <!-- endbuild -->

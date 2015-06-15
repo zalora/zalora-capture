@@ -207,11 +207,8 @@ ul.screenshots .thumb {
 }
 
 ul.screenshots .name {
-    font-size: 12px;
+    font-size: 13px;
     display: block;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
     margin-top: 5px;
 }
 
