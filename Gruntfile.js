@@ -14,7 +14,11 @@ module.exports  = function (grunt) {
     grunt.initConfig({
         pkg: grunt.file.readJSON('package.json'),
         jshint: {
-            files: ['Gruntfile.js', 'src/js/*.js'],
+            files: [
+                'Gruntfile.js',
+                _configs.app + '/src/js/{,*/}*.js',
+                '!' + _configs.app + '/src/js/third-party/*.js',
+            ],
             options: {
                 globalstrict: true,
                 newcap: false,
@@ -55,8 +59,7 @@ module.exports  = function (grunt) {
                             'manifest.json',
                             'src/images/**/*.png',
                             'src/*.html',
-                            'src/js/lib/*.js',
-                            'src/js/ga.js'
+                            'src/js/third-party/*.js'
                         ],
                         dest: _configs.dist
                     },
@@ -115,7 +118,7 @@ module.exports  = function (grunt) {
                 files: [{
                     expand: true,
                     cwd: _configs.app,
-                    src: 'src/js/ConsoleListener.js',
+                    src: 'src/js/console-listener.js',
                     dest: _configs.dist
                 }]
             }
