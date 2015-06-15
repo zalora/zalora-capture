@@ -10,6 +10,11 @@ Zalora Capture provides many tools, where:
 ![](https://github.com/zalora/zalora-capture/raw/master/docs/images/2015-06-05_16-56-37.png)
 
 
+## Changelogs
+#### v0.1.4 (comming soon)
+- Support Shop or Blank template.
+- Attach random file types.
+
 ## Install
 ### Install dependencies
 Run command:
