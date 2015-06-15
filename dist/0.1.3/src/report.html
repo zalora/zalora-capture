@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html ng-app="app.report" ng-csp>
+    <head>
+        <meta charset="UTF-8">
+        <title>Zalora Capture</title>
+
+        <link rel="stylesheet" href="css/app.min.css">
+
+        <script src="js/third-party/ga.js"></script>
+    </head>
+    <body ng-mousedown="onClickOnDocument()">
+        <div id="main">
+            <div id="canvas-wrapper" ng-controller="DrawController as dvm">
+                <div class="toolbar">
+                    <ul class="tools">
+                        <li ng-repeat="key in dvm.notSorted(dvm.tools)" ng-init="tool = dvm.tools[key]">
+                            <a href="#" ng-click="dvm.setActiveTool(tool.params.id)" ng-bind-html="dvm.$sce.trustAsHtml(tool.params.name)" ng-class="{active: dvm.activeTool.params.id == tool.params.id}">
+                            </a>
+                        </li>
+                        <li>
+                            <a></a>
+                        </li>
+                        <li>
+                            <a href="#" ng-click="dvm.clearItems()">
+                                <i class="fa fa-trash"></i>
+                                Clear
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" ng-click="dvm.exportImage()">
+                                <i class="fa fa-download"></i>
+                                Export
+                            </a>
+                        </li>
+                    </ul>
+                    <ul class="colors">
+                        <li ng-repeat="color in dvm.colors">
+                            <a href="#" ng-class="{active: dvm.activeColor == color}" ng-click="dvm.setActiveColor(color)" style="background: {{color}}"></a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="canvas-content">
+                    <svg id="draw-canvas" zc-canvas class="{{dvm.activeTool.params.id}}"></svg>
+                    <div type="text"
+                        ng-show="dvm.textLayer.isShow"
+                        ng-cloak
+                        name="text-layer"
+                        id="text-layer"
+                        style="color: {{dvm.activeColor}}; border-color: {{dvm.activeColor}}; top: {{dvm.textLayer.top - 23}}px; left: {{dvm.textLayer.left - 17}}px"
+                        ng-model="dvm.textlayerData"
+                        zc-text-layer
+                        zc-focus="dvm.textLayer.focus"
+                        ng-blur="dvm.textLayer.focus = false"
+                        contenteditable
+                        zc-contenteditable></div>
+                </div>
+            </div>
+            <div id="sidebar" class="" ng-controller="ReportController as vm">
+                <form id="create-new-issue" method="POST" role="form" ng-show="!vm.loading" ng-cloak ng-submit="vm.saveIssue()">
+                    <legend>Create new issue</legend>
+
+                    <div class="alert alert-success" role="alert" ng-show="vm.newIssue" ng-cloak>
+                        <a target="__blank" href="{{vm.server}}/browse/{{vm.newIssue.key}}"> <i class="fa fa-bug"></i> <strong>{{vm.newIssue.key}}</strong></a> created!
+                        <button ng-click="vm.newIssue = false;" type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">×</span></button>
+                    </div>
+
+                    <div class="alert alert-danger" role="alert" ng-show="vm.issueError" ng-cloak>
+                        <strong>Error:</strong> {{vm.issueError}}
+                        <button ng-click="vm.issueError = false;" type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">×</span></button>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="project">Project <font color="red">*</font></label>
+                        <select name="project" id="project" class="form-control" required="required" ng-model="vm.selected['projects']" ng-options="project.id as project.name for project in vm.info['projects']" ng-show="vm.info['projects'].length">
+                        </select>
+                        <p ng-show="!vm.info['projects'].length" class="alert alert-danger">No available projects! Please create your own project to continue!</p>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="type">Issue Type <font color="red">*</font></label>
+                        <select name="type" id="type" class="form-control" required="required" ng-model="vm.selected['issueTypes']" ng-options="type.id as type.name for type in vm.info['issueTypes']">
+                        </select>
+
+                    </div>
+
+                    <div class="form-group">
+                        <label for="priority">Priority <font color="red">*</font></label>
+                        <select name="priority" id="priority" class="form-control" required="required" ng-model="vm.selected['priorities']" ng-options="priority.id as priority.name for priority in vm.info['priorities']">
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="summary">Summary <font color="red">*</font></label>
+                        <textarea ng-model="vm.summary" name="summary" id="summary" class="form-control" required="required" rows="2"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="description">Description <font color="red">*</font></label>
+                        <textarea ng-model="vm.description" name="description" id="description" class="form-control" required="required" rows="6"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="screenshots">Other screenshots <font color="red">*</font></label>
+                        <input type="file" nv-file-select="" uploader="vm.uploader" multiple>
+
+                        <ul class="screenshots" ng-show="vm.uploader.queue.length" ng-cloak>
+                            <li ng-repeat="item in vm.uploader.queue">
+                                <div class="thumb" zc-thumb="{file: item._file}"></div>
+                                <div class="name" title="{{item.file.name}}">
+                                    {{item.file.name}}
+                                </div>
+                                <div class="remove" ng-click="item.remove()" title="Remove">
+                                    <i class="fa fa-close"></i> remove
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="form-group" ng-show="actions" ng-cloak>
+                        <label for="actions">User actions</label>
+                        <textarea ng-model="actions" name="actions" id="actions" class="form-control" rows="6" ></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" value="" checked="checked" ng-model="vm.includeEnv">
+                                Include environment data
+                            </label>
+                        </div>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" value="" checked="checked" ng-model="vm.includeConsoleLogs">
+                                Include console logs
+                            </label>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Create</button>
+                </form>
+                <div class="loading-box" ng-show="vm.loading" ng-cloak>
+                    <i class="fa fa-refresh fa-spin"></i>
+                    <span>{{vm.loading}}</span>
+                </div>
+            </div>
+        </div>
+
+        <script src="js/app.min.js"></script>
+    </body>
+</html>

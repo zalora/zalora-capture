@@ -1,18 +1,24 @@
 <!DOCTYPE html>
-<html ng-app="CaptureBackground">
+<html ng-app="app.background">
 <head>
     <!-- build:js js/background.min.js -->
     <script src="../bower_components/async/lib/async.js"></script>
-    <script src="js/lib/rpf_background_script.js"></script>
+    <script src="js/third-party/rpf.background.js"></script>
     <script src="../bower_components/angular/angular.min.js"></script>
-    <script src="js/CaptureCommon.js"></script>
-    <script src="js/CaptureConfigs.js"></script>
-    <script src="js/CaptureStorage.js"></script>
-    <script src="js/CaptureBackground.js"></script>
+    <script src="js/core/core.module.js"></script>
+    <script src="js/core/config.service.js"></script>
+    <script src="js/core/storage.service.js"></script>
+    <script src="js/core/async.service.js"></script>
+    <script src="js/core/chrome.service.js"></script>
+    <script src="js/core/rpf.service.js"></script>
+
+    <script src="js/background/background.module.js"></script>
+    <script src="js/background/background.service.js"></script>
+    <script src="js/background/background.controller.js"></script>
     <!-- endbuild -->
 
-    <script src="js/ga.js"></script>
+    <script src="js/third-party/ga.js"></script>
 </head>
-<body ng-controller="MainController">
+<body ng-controller="BackgroundController as vm">
 </body>
 </html>
