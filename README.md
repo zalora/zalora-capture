@@ -11,8 +11,8 @@ Zalora Capture provides many tools, where:
 
 
 ## Changelogs
-#### v0.2.0 (comming soon)
-- Support Shop or Blank template.
+#### v0.2.0
+- Support Shop/Blank template.
 - Attach random file types.
 
 ## Install
