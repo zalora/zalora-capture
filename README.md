@@ -45,7 +45,13 @@ See details:
 ### JS Lint
 Run command:
 ``` 
-grunt
+grunt jshint
 ```
 
 to run jshint tool.
+
+## Build
+Run command
+```
+grunt build
+```
