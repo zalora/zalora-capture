@@ -24,4 +24,3 @@ h3. Example
 4. http://www.zalora.co.id/men/pakaian/batik/ozzy-batik/new-products/?size=M&sort=popularity&dir=desc
 5. http://www.zalora.co.id/women/ripcurl/?gender=women&sort=brand&dir=asc
 
-[~silvia.thom], [~kern.hoh], [~Herman.Soh]
