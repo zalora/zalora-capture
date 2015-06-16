@@ -70,8 +70,11 @@
                         <button ng-click="vm.newIssue = false;" type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">×</span></button>
                     </div>
 
-                    <div class="alert alert-danger" role="alert" ng-show="vm.issueError" ng-cloak>
-                        <strong>Error:</strong> {{vm.issueError}}
+                    <div class="alert alert-danger" role="alert" ng-show="vm.issueError.length" ng-cloak>
+                        <strong>Errors:</strong>
+                        <div ng-repeat="err in vm.issueError">
+                             - {{err}}
+                        </div>
                         <button ng-click="vm.issueError = false;" type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">×</span></button>
                     </div>
 

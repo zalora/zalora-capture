@@ -45,3 +45,13 @@ a {
 a:focus {
     outline: none;
 }
+
+button.close {
+    position: absolute;
+    top: 4px;
+    right: 10px;
+}
+
+.alert {
+    position: relative;
+}

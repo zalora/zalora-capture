@@ -36,7 +36,8 @@
             filterProject: filterProject
         },
         configs = {
-            APIs: configService.get('APIs')
+            APIs: configService.get('APIs'),
+            timeout: configService.get('timeout', 'rest')
         },
         reporterId = null;
 
@@ -204,14 +205,15 @@
                 headers: {
                     'Content-Type': undefined,
                     'X-Atlassian-Token': 'nocheck'
-                }
-            }).success(function (resp) {
-                if (onSuccess) {
+                },
+                timeout: configs.timeout
+            }).success(function (resp, status) {
+                if (typeof onSuccess !== 'undefined') {
                     onSuccess(resp);
                 }
-            }).error(function (resp) {
-                if (onError) {
-                    onError(resp);
+            }).error(function (resp, status) {
+                if (typeof onError !== 'undefined') {
+                    onError(resp, status);
                 }
             });
         }

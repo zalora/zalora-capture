@@ -106,11 +106,11 @@
 
         vm.saveIssue = function () {
             vm.loading = 'Creating issue..';
-            vm.issueError = false;
+            vm.issueError = [];
 
             asyncService.parallel({
                 issueId: function (callback) {
-                    // return callback(null, 'VP-52');
+                    // return callback(null, 'OMS-107');
                     jiraService.createIssue(
                         vm.selected.projects,
                         vm.selected.issueTypes,
@@ -138,19 +138,19 @@
                     issueId: function (callback) { // attach screenshot
                         // return callback(null, results.issueId);
                         if (!results.issueId) {
-                            vm.loading = false;
                             vm.newIssue = false;
-                            vm.issueError = "Can not create this issue type in this project! Please reconfig 'Issue Type Schemes' in JIRA or choose a difference issue type.";
+                            vm.issueError.push("Can not create this issue type in this project! Please reconfig 'Issue Type Schemes' in JIRA or choose a difference issue type.");
                             return callback(true, null);
                         }
 
-                        vm.loading = 'Uploading attachments..';
+                        vm.loading = 'Uploading screenshot..';
 
                         jiraService.attachScreenshotToIssue(results.issueId, results.screenshot, function (resp) {
                             callback(null, results.issueId);
-                        }, function (resp) {
-                            // TODO: display error message
-                            callback(null, results.issueId);
+                        }, function (resp) { // on error
+                            vm.issueError.push('[Upload screenshot] ' + (resp || "Failed! Please check the attachment's maximize size in JIRA configuration."));
+
+                            callback(true, results.issueId);
                         });
                     },
                     startUrl: function (callback) {
@@ -196,8 +196,11 @@
                             jiraService.attachFiles(finalResults.issueId, items, function (resp) {
                                 vm.uploader.clearQueue();
                                 return callback(null, null);
-                            }, function () {
-                                vm.issueError = 'There are an unknown error with attach files!'
+                            }, function (resp) { // on error
+                                vm.uploader.clearQueue();
+
+                                vm.issueError.push('[Upload attached files] ' + (resp || "Failed! Please check the attachment's maximize size in JIRA configuration."));
+
                                 return callback(true, null);
                             });
                         },
@@ -211,9 +214,9 @@
                             vm.loading = 'Uploading user actions data..';
                             jiraService.attachRecordingData(finalResults.issueId, finalResults.recordingData, function (resp) {
                                 callback(null, null);
-                            }, function (resp) {
-                                // TODO: handle errors
-                                callback(null, null);
+                            }, function (resp) { // on error
+                                vm.issueError.push('[Upload user actions] ' + (resp || 'Failed!'));
+                                callback(true, null);
                             });
                         },
                         function (callback) { // uploading console logs data
@@ -224,20 +227,19 @@
                             vm.loading = 'Uploading console logs data..';
                             jiraService.attachJavascriptErrors(finalResults.issueId, $rootScope.consoleLogs, function () {
                                 return callback(null, null);
+                            }, function (resp) { // on error
+                                vm.issueError.push('[Upload user actions] ' + (resp || 'Failed!'));
                             });
-                        },
-                        function (callback) {
-                            $timeout(function () {
-                                vm.loading = false;
-                                $rootScope.actions = '';
-                                vm.summary = '';
-                                vm.description = '';
-                                $rootScope.consoleLogs = [];
-                            });
-
-                            return callback(null, null);
                         }
-                    ]);
+                    ], function () {
+                        $timeout(function () {
+                            vm.loading = false;
+                            $rootScope.actions = '';
+                            vm.summary = '';
+                            vm.description = '';
+                            $rootScope.consoleLogs = [];
+                        });
+                    });
 
                 });
             });

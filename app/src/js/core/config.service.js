@@ -20,8 +20,8 @@
             get: get
         },
         configs = {
-            liveReload: true,
-            serverName: 'lehungvinh',
+            liveReload: false,
+            serverName: 'zalora',
             serverUrl: 'https://{serverName}.atlassian.net',
             projectFilter: {
                 'zalora': [ // project KEY
@@ -37,6 +37,9 @@
             },
             canvas: {
                 colors: ['#c0392b', '#d35400', '#f39c12', '#f1c40f', '#16a085', '#2cc36b', '#2980b9', '#8e44ad', '#2c3e50', '#ecf0f1']
+            },
+            timeout: {
+                rest: 30000,
             },
             APIs: {
                 auth: '/rest/auth/latest/session?os_authType=none',
