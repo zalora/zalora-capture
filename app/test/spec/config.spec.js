@@ -1,4 +1,4 @@
-describe('Capture Config', function () {
+describe('config service', function () {
     var result;
 
     beforeEach(module('app.core'));

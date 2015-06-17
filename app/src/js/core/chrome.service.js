@@ -27,11 +27,11 @@
             createWindow: createWindow,
             updateWindow: updateWindow,
             getWindow: getWindow,
-            captureVisibleTab: captureVisibleTab,
-            queryTab: queryTab,
             createTab: createTab,
             updateTab: updateTab,
             getTab: getTab,
+            queryTab: queryTab,
+            captureVisibleTab: captureVisibleTab,
             getLastError: getLastError
         };
         return service;
@@ -74,6 +74,7 @@
         }
 
         function sendRequest (command, data, callback) {
+            console.log('%csend request: ', 'color: green', command, data);
             chrome.extension.sendRequest({command: command, params: data}, function (resp) {
                 if (callback) {
                     callback(resp);
@@ -92,10 +93,6 @@
 
         function createWindow (opts, callback) {
             chrome.windows.create(opts, callback);
-        }
-
-        function queryTab (params, callback) {
-            chrome.tabs.query(params, callback);
         }
 
         function updateWindow (id, data) {
@@ -120,6 +117,10 @@
 
         function getTab (id, callback) {
             chrome.tabs.get(id, callback);
+        }
+
+        function queryTab (params, callback) {
+            chrome.tabs.query(params, callback);
         }
 
         function getLastError () {
