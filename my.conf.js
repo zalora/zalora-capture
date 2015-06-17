@@ -20,8 +20,10 @@ module.exports = function(config) {
 
         'src/js/core/*.module.js',
         'src/js/core/*.js',
+        'src/js/apis/*.js',
 
-        'test/spec/*.spec.js'
+        'test/spec/core/*.spec.js',
+        'test/spec/apis/*.spec.js'
     ],
 
 
