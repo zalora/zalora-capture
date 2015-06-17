@@ -56,6 +56,10 @@ to run jshint tool.
 
 ### Unit test
 Open browser with URL ```chrome-extension://{extensionId}/test/SpecRunner.html``` to run test.
+Or run command
+``` 
+grunt test
+```
 
 ## Build
 Run command
