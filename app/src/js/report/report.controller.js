@@ -248,11 +248,11 @@
         function initTemplates () {
             vm.templates = templateService.getList();
 
-            vm.selected['template'] = 'blank';
+            vm.selected.template = 'blank';
         }
 
         vm.onTemplateChange = function () {
-            templateService.getContent(vm.selected['template'], function (resp) {
+            templateService.getContent(vm.selected.template, function (resp) {
                 vm.description = resp;
             });
         };

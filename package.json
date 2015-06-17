@@ -13,7 +13,11 @@
     "grunt-contrib-compress": "*",
     "grunt-contrib-clean": "*",
     "grunt-contrib-concat": "*",
-    "grunt-usemin": "*"
+    "grunt-usemin": "*",
+    "karma": "*",
+    "karma-jasmine": "*",
+    "karma-chrome-launcher": "*",
+    "grunt-karma": "*"
   },
   "scripts": {
     "postinstall": "bower install"

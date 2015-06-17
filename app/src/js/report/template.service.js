@@ -41,7 +41,7 @@
                 return callback('');
             }
 
-            $http.get('templates/' + templates[id]['data']).success(function (resp) {
+            $http.get('templates/' + templates[id].data).success(function (resp) {
                 callback(resp);
             });
         }

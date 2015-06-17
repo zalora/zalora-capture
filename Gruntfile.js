@@ -127,6 +127,12 @@ module.exports  = function (grunt) {
                     dest: _configs.dist
                 }]
             }
+        },
+
+        karma: {
+            unit: {
+                configFile: 'my.conf.js'
+            }
         }
     });
 
@@ -139,6 +145,7 @@ module.exports  = function (grunt) {
     grunt.loadNpmTasks('grunt-contrib-clean');
     grunt.loadNpmTasks('grunt-contrib-concat');
     grunt.loadNpmTasks('grunt-usemin');
+    grunt.loadNpmTasks('grunt-karma');
 
     grunt.registerTask('build', [
         'clean',
@@ -155,6 +162,8 @@ module.exports  = function (grunt) {
         'compress'
     ]);
 
-    grunt.registerTask('default', ['jshint', 'build']);
+    grunt.registerTask('test', ['jshint', 'karma']);
+
+    grunt.registerTask('default', ['test', 'build']);
 };
 
