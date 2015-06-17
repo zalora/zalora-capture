@@ -14,7 +14,7 @@ describe('config service', function () {
     it('get invalid config', inject(function (configService) {
         expect(function () {
             configService.get('anyKey');
-        }).toThrow("No group config 'anyKey' availabsle!");
+        }).toThrow("No group config 'anyKey' available!");
     }));
 
 });
