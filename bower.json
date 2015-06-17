@@ -20,7 +20,8 @@
     "bootstrap": "*",
     "angular-file-upload": "*",
     "snap.svg": "*",
-    "angular-mocks": "*"
+    "angular-mocks": "*",
+    "jasmine": "*"
   },
   "resolutions": {
     "angular": "1.4.0"

@@ -18,7 +18,7 @@
         <h4>Zalora <b>Capture</b></h4>
 
         <form method="POST" role="form" ng-show="!vm.user && !vm.loading" ng-cloak ng-submit="vm.logIn()">
-            <div class="alert alert-danger" role="alert" ng-show="showLoginFailBox">
+            <div class="alert alert-danger" role="alert" ng-show="vm.showLoginFailBox">
                 Log in failed! Please check your credentials!
             </div>
 

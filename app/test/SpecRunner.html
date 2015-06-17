@@ -5,11 +5,11 @@
   <title>Jasmine Spec Runner v2.3.4</title>
 
   <link rel="shortcut icon" type="image/png" href="lib/jasmine-2.3.4/jasmine_favicon.png">
-  <link rel="stylesheet" href="lib/jasmine-2.3.4/jasmine.css">
+  <link rel="stylesheet" href="../bower_components/jasmine/lib/jasmine-core/jasmine.css">
 
-  <script src="lib/jasmine-2.3.4/jasmine.js"></script>
-  <script src="lib/jasmine-2.3.4/jasmine-html.js"></script>
-  <script src="lib/jasmine-2.3.4/boot.js"></script>
+  <script src="../bower_components/jasmine/lib/jasmine-core/jasmine.js"></script>
+  <script src="../bower_components/jasmine/lib/jasmine-core/jasmine-html.js"></script>
+  <script src="../bower_components/jasmine/lib/jasmine-core/boot.js"></script>
 
   <!-- include source files here... -->
   <script src="../bower_components/angular/angular.min.js"></script>
@@ -20,13 +20,21 @@
   <script src="../src/js/core/config.service.js"></script>
   <script src="../src/js/core/storage.service.js"></script>
   <script src="../src/js/core/async.service.js"></script>
+  <script src="../src/js/core/rpf.service.js"></script>
+  <script src="../src/js/core/ga.service.js"></script>
+
+  <script src="../src/js/apis/apis.module.js"></script>
+  <script src="../src/js/apis/jira.service.js"></script>
 
   <!-- include spec files here... -->
-  <script src="spec/storage.spec.js"></script>
-  <script src="spec/config.spec.js"></script>
-  <script src="spec/chrome-service.spec.js"></script>
+  <script src="spec/core/storage.spec.js"></script>
+  <script src="spec/core/config.spec.js"></script>
+  <script src="spec/core/chrome.spec.js"></script>
+  <script src="spec/core/async.spec.js"></script>
+  <script src="spec/core/rpf.spec.js"></script>
+  <script src="spec/core/ga.spec.js"></script>
 
-  <script src="http://localhost:35729/livereload.js?snipver=1"></script>
+  <script src="spec/apis/jira.spec.js"></script>
 
 </head>
 
