@@ -97,5 +97,4 @@ describe('jira service', function () {
             expect(resp.length).toEqual(1);
         });
     });
-
 });
