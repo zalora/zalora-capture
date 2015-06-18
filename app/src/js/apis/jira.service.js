@@ -33,7 +33,9 @@
             getScripts: getScripts,
             getJsonFromUrl: getJsonFromUrl,
             setServer: setServer,
-            filterProject: filterProject
+            filterProject: filterProject,
+
+            _postAttachmentToIssue: postAttachmentToIssue
         },
         configs = {
             APIs: configService.get('APIs'),
@@ -59,7 +61,7 @@
 
                 reporterId = data.name;
                 setServer(server);
-                if (onSuccess !== 'undefined') {
+                if (typeof onSuccess !== 'undefined') {
                     onSuccess(data, status);
                 }
             }).error(function (data, status) {
@@ -74,7 +76,7 @@
             $http.get(server + configs.APIs.auth).success(function (data, status) {
                 reporterId = data.name;
                 setServer(server);
-                if (onSuccess !== 'undefined') {
+                if (typeof onSuccess !== 'undefined') {
                     onSuccess(data, status);
                 }
             }).error(function (data, status) {
@@ -83,13 +85,6 @@
                     onError(data, status);
                 }
             });
-        }
-
-        function parseAPIData (data, type) {
-            if (type == 'issueTypes') {
-                return data.projects[0].issuetypes;
-            }
-            return data;
         }
 
         function filterProject (data) {
