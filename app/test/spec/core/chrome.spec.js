@@ -11,13 +11,19 @@ describe('chrome service', function () {
                 sendMessage: function () {},
                 onMessage: {
                     addListener: function () {}
-                }
+                },
+                lastError: fooString
             },
             extension: {
                 sendRequest: function () {}
             },
             tabs: {
-                sendMessage: function () {}
+                sendMessage: function () {},
+                create: function () {},
+                get: function () {},
+                update: function () {},
+                query: function () {},
+                captureVisibleTab: function () {}
             },
             storage: {
                 sync: {
@@ -45,6 +51,12 @@ describe('chrome service', function () {
         spyOn(chrome.windows, 'get');
         spyOn(chrome.windows, 'update');
 
+        spyOn(chrome.tabs, 'create');
+        spyOn(chrome.tabs, 'get');
+        spyOn(chrome.tabs, 'update');
+        spyOn(chrome.tabs, 'query');
+        spyOn(chrome.tabs, 'captureVisibleTab');
+
         done();
     });
 
@@ -64,6 +76,18 @@ describe('chrome service', function () {
             chromeService.getWindow(777);
             chromeService.getWindow(777, barFunc);
             chromeService.updateWindow(777, fooObject);
+
+            chromeService.createTab(fooObject);
+            chromeService.createTab(fooObject, barFunc);
+            chromeService.getTab(777);
+            chromeService.getTab(777, barFunc);
+            chromeService.updateTab(777, fooObject);
+            chromeService.queryTab(fooObject);
+            chromeService.queryTab(fooObject, barFunc);
+            chromeService.captureVisibleTab(777, fooObject);
+            chromeService.captureVisibleTab(777, fooObject, barFunc);
+
+            lastError = chromeService.getLastError();
 
             done();
         });
@@ -113,4 +137,43 @@ describe('chrome service', function () {
         expect(chrome.windows.update).toHaveBeenCalledWith(777, fooObject);
     });
 
+    it('chrome.tabs.create was called', function () {
+        expect(chrome.tabs.create).toHaveBeenCalledWith(fooObject, undefined);
+    });
+
+    it('chrome.tabs.create was called with callback', function () {
+        expect(chrome.tabs.create).toHaveBeenCalledWith(fooObject, barFunc);
+    });
+
+    it('chrome.tabs.get was called', function () {
+        expect(chrome.tabs.get).toHaveBeenCalledWith(777, undefined);
+    });
+
+    it('chrome.tabs.get was called with callback', function () {
+        expect(chrome.tabs.get).toHaveBeenCalledWith(777, barFunc);
+    });
+
+    it('chrome.tabs.update was called', function () {
+        expect(chrome.tabs.update).toHaveBeenCalledWith(777, fooObject);
+    });
+
+    it('chrome.tabs.query was called', function () {
+        expect(chrome.tabs.query).toHaveBeenCalledWith(fooObject, undefined);
+    });
+
+    it('chrome.tabs.query was called with callback', function () {
+        expect(chrome.tabs.query).toHaveBeenCalledWith(fooObject, barFunc);
+    });
+
+    it('chrome.tabs.captureVisibleTab was called', function () {
+        expect(chrome.tabs.captureVisibleTab).toHaveBeenCalledWith(777, fooObject, undefined);
+    });
+
+    it('chrome.tabs.captureVisibleTab was called with callback', function () {
+        expect(chrome.tabs.captureVisibleTab).toHaveBeenCalledWith(777, fooObject, barFunc);
+    });
+
+    it('chrome.runtime.getLastError was referenced', function () {
+        expect(lastError).toBe(fooString);
+    });
 });
