@@ -12,10 +12,10 @@
         .module('app.report')
         .factory('reportService', reportService);
 
-    reportService.$inject = ['snapService', 'chromeService', 'drawService', '$rootScope'];
+    reportService.$inject = ['snapService', 'chromeService', 'drawService', '$rootScope', '$window'];
 
     /* @ngInject */
-    function reportService(snapService, chromeService, drawService, $rootScope) {
+    function reportService(snapService, chromeService, drawService, $rootScope, $window) {
         var handlers = {
             updateScreenshot: actionUpdateScreenshot,
             updateConsoleErrors: actionUpdateConsoleErrors
@@ -43,7 +43,7 @@
                 svgImage.remove();
             }
 
-            image = new Image();
+            image = new $window.Image();
             image.onload = function () {
                 svgImage = canvas.image(data, 0, 0, this.width, this.height);
                 canvas.attr('width', this.width / window.devicePixelRatio);

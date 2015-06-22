@@ -11,14 +11,14 @@
         .module('app.core')
         .factory('rpfService', rpfService);
 
-    rpfService.$inject = [];
+    rpfService.$inject = ['$window'];
 
     /* @ngInject */
-    function rpfService() {
-        if (typeof rpf === 'undefined') {
+    function rpfService($window) {
+        if (typeof $window.rpf === 'undefined') {
             return null;
         }
 
-        return rpf.Utils.getInstance();
+        return $window.rpf.Utils.getInstance();
     }
 })();

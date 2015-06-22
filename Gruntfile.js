@@ -26,21 +26,7 @@ module.exports  = function (grunt) {
                     module: true,
                     console: true,
                     angular: true,
-                    document: true,
-                    chrome: true,
-                    window: true,
-                    Snap: true,
-                    Image: true,
-                    XMLSerializer: true,
-                    CustomEvent: true,
-                    async: true,
-                    rpf: true,
-                    Blob: true,
-                    FormData: true,
-                    Uint8Array: true,
-                    Prism: true,
-                    FileReader: true,
-                    _gaq: true
+                    window: true
                 }
             }
         },
