@@ -61,7 +61,7 @@
             }
 
             var img = element.find('img');
-            var reader = new FileReader();
+            var reader = new $window.FileReader();
 
             reader.onload = function (e) {
                 img.attr('src', e.target.result);

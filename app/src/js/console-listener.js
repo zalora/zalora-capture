@@ -11,12 +11,12 @@ var ConsoleListener = (function () {
     var _errors = [],
     _init = function () {
         // console.log('addListener');
-        chrome.runtime.onMessage.addListener(_onMessage);
+        window.chrome.runtime.onMessage.addListener(_onMessage);
 
         // init error listener
         _errors = [];
         _injectScript();
-        document.addEventListener('CaptureLog', _onError);
+        window.document.addEventListener('CaptureLog', _onError);
     },
     _initListener = function () {
         var _padStr = function(i) {
@@ -34,7 +34,7 @@ var ConsoleListener = (function () {
         backupConsole = window.console,
         generateLogFunc = function (func) {
             return function () {
-                document.dispatchEvent(new CustomEvent('CaptureLog', {
+                window.document.dispatchEvent(new window.CustomEvent('CaptureLog', {
                     detail: {
                         time: _getTime(),
                         type: 'console.' + func,
@@ -49,7 +49,7 @@ var ConsoleListener = (function () {
 
         // listern error event
         window.addEventListener('error', function (error) {
-            document.dispatchEvent(new CustomEvent('CaptureLog', {
+            window.document.dispatchEvent(new window.CustomEvent('CaptureLog', {
                 detail: {
                     time: _getTime(),
                     type: 'error',
@@ -75,9 +75,9 @@ var ConsoleListener = (function () {
         }
     },
     _injectScript = function () {
-        var script = document.createElement('script');
+        var script = window.document.createElement('script');
         script.textContent = '(' + _initListener + '())';
-        (document.head || document.documentElement).appendChild(script);
+        (window.document.head || window.document.documentElement).appendChild(script);
         script.parentNode.removeChild(script);
     },
     _onError = function (data) {

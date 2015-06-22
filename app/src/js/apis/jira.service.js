@@ -12,10 +12,10 @@
         .module('app.apis')
         .factory('jiraService', jiraService);
 
-    jiraService.$inject = ['configService', 'storageService', '$http', '$filter'];
+    jiraService.$inject = ['configService', 'storageService', '$http', '$filter', '$window'];
 
     /* @ngInject */
-    function jiraService(configService, storageService, $http, $filter) {
+    function jiraService(configService, storageService, $http, $filter, $window) {
         var service = {
             auth: auth,
             getCurUser: getCurUser,
@@ -181,7 +181,7 @@
                 contentType = parts[0].split(':')[1];
                 raw = decodeURIComponent(parts[1]);
 
-                return new Blob([raw], {type: contentType});
+                return new $window.Blob([raw], {type: contentType});
             }
 
             parts = dataURL.split(BASE64MARKER);
@@ -189,13 +189,13 @@
             raw = window.atob(parts[1]);
             rawLength = raw.length;
 
-            uInt8Array = new Uint8Array(rawLength);
+            uInt8Array = new $window.Uint8Array(rawLength);
 
             for (var i = 0; i < rawLength; ++i) {
                 uInt8Array[i] = raw.charCodeAt(i);
             }
 
-            return new Blob([uInt8Array], {type: contentType});
+            return new $window.Blob([uInt8Array], {type: contentType});
         }
 
         function postAttachmentToIssue (url, fd, onSuccess, onError) {
@@ -220,7 +220,7 @@
         function addAttachmentToIssue (key, data, fileName, onSuccess, onError) {
             var url = configs.server + configs.APIs.attachToIssue.replace('{issueId}', key);
 
-            var fd = new FormData();
+            var fd = new $window.FormData();
 
             fileName = fileName.replace('%s', $filter('date')(Date.now(), "yyyy-MM-dd 'at' h:mma"));
             fd.append('file', data, fileName);
@@ -231,7 +231,7 @@
         function addMultipleAttachmentsToIssue (key, files, onSuccess, onError) {
             var url = configs.server + configs.APIs.attachToIssue.replace('{issueId}', key);
 
-            var fd = new FormData();
+            var fd = new $window.FormData();
             for (var i = 0; i < files.length; i++) {
                 fd.append('file', files[i]._file, files[i]._file.name);
             }
@@ -248,7 +248,7 @@
         }
 
         function attachJsonData (prefix, key, data, onSuccess, onError) {
-            data = new Blob([JSON.stringify(data)], {
+            data = new $window.Blob([JSON.stringify(data)], {
                 type: 'application/json'
             });
             addAttachmentToIssue(key, data, prefix + ' %s.json', onSuccess, onError);

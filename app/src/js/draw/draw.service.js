@@ -12,10 +12,10 @@
         .module('app.draw')
         .factory('drawService', drawService);
 
-    drawService.$inject = ['jiraService', 'toolService'];
+    drawService.$inject = ['jiraService', 'toolService', '$window'];
 
     /* @ngInject */
-    function drawService(jiraService, toolService) {
+    function drawService(jiraService, toolService, $window) {
         var service = {
             set: set,
             addTool: addTool,
@@ -101,7 +101,7 @@
 
         function exportImage (callback) {
             var svg = document.querySelector("svg"),
-                svgData = new XMLSerializer().serializeToString(svg),
+                svgData = new $window.XMLSerializer().serializeToString(svg),
                 canvas = document.createElement("canvas"),
                 svgSize = svg.getBoundingClientRect();
 

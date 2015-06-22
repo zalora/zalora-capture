@@ -12,12 +12,12 @@
         .module('app.draw')
         .factory('snapService', snapService);
 
-    snapService.$inject = [];
+    snapService.$inject = ['$window'];
 
     /* @ngInject */
-    function snapService() {
-        if (typeof Snap !== 'undefined') {
-            return Snap;
+    function snapService($window) {
+        if (typeof $window.Snap !== 'undefined') {
+            return $window.Snap;
         }
 
         return null;

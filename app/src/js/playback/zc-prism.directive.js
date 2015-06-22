@@ -12,10 +12,10 @@
         .module('app.playback')
         .directive('zcPrism', zcPrism);
 
-    zcPrism.$inject = [];
+    zcPrism.$inject = ['$window'];
 
     /* @ngInject */
-    function zcPrism () {
+    function zcPrism ($window) {
         // Usage:
         //
         // Creates:
@@ -42,13 +42,13 @@
 
                 console.log(val, codeElement[0]);
                 element.attr('data-line', 1);
-                Prism.highlightElement(codeElement[0]);
+                $window.Prism.highlightElement(codeElement[0]);
             });
 
             scope.$watch('step', function(val) {
                 console.log('step change', val);
                 element.attr('data-line', val);
-                Prism.highlightElement(codeElement[0]);
+                $window.Prism.highlightElement(codeElement[0]);
             });
 
         }

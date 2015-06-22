@@ -51,10 +51,10 @@
                 <pre zc-prism source="{{vm.actions}}" step="{{currentStep}}" class="line-numbers language-actions"></pre>
             </div>
 
-            <div class="form-group" ng-show="vm.screenshots" ng-cloak>
+            <div class="form-group" ng-show="vm.screenshots" ng-cloak ng-init="vm.activeScreenshot = 0">
                 <label>Screenshots</label>
                 <ul class="screenshots">
-                    <li ng-repeat="(title, screenshot) in vm.screenshots" ng-show="vm.$index == vm.activeScreenshot">
+                    <li ng-repeat="(title, screenshot) in vm.screenshots" ng-show="$index == vm.activeScreenshot">
                         <a title="{{title}}" href="{{screenshot}}" target="__blank">
                             <img src="{{screenshot}}" alt="">
                             <span>{{title}}</span>
@@ -64,7 +64,7 @@
 
                 <span class="indicators-desc">Action</span>
 
-                <ul class="indicators" ng-init="vm.activeScreenshot = 0">
+                <ul class="indicators">
                     <li ng-repeat="n in [] | rangeObject:vm.screenshots">
                         <a href="" ng-click="vm.setActiveScreenshot(n)" ng-class="{active: vm.activeScreenshot == n}">{{n + 1 }}</a>
                     </li>

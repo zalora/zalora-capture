@@ -31,11 +31,20 @@
                     mousemove: undefined
                 },
                 attrs: {},
-                render: function () {},
-                createElement: function () {}
+                render: undefined,
+                createElement: undefined
             };
 
             this.params = angular.extend(this.params, params);
+
+            // checking params
+            if (typeof this.params.createElement !== 'function') {
+                throw Error('You must define `createElement` method in `params` to create a tool instance.');
+            }
+
+            if (typeof this.params.render !== 'function') {
+                throw Error('You must define `render` method in `params` to create a tool instance.');
+            }
 
             this.handlers = handlers;
 
@@ -69,6 +78,11 @@
 
             if (!this.activeElement) {
                 this.activeElement = this.params.createElement.call(this, x, y);
+
+                if (!this.activeElement || typeof this.activeElement !== 'object') {
+                    throw Error('The `createElement` does not return a valid object.');
+                }
+
                 this.elements.push(this.activeElement);
             }
 
@@ -91,7 +105,10 @@
             } else { // default behaviors
                 if (this.isSamePoint() && this.activeElement) {
                     console.log('isSamePoint');
-                    this.activeElement.remove();
+                    if (typeof this.activeElement.remove !== 'undefined') {
+                        this.activeElement.remove();
+                    }
+
                     this.activeElement = null;
                     this.elements.splice(this.elements.length - 1, 1);
                     return;
@@ -160,8 +177,7 @@
 
         function runHook (hookName) {
             /*jshint validthis: true */
-
-            if (this.params.hooks[hookName]) {
+            if (typeof this.params.hooks[hookName] === 'function') {
                 this.params.hooks[hookName].call(this);
             }
         }
