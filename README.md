@@ -33,7 +33,7 @@ Two dependency files is generated from this repository https://github.com/vinhlh
 - Locate to the repository directory
 
 ### Get started
-- Go to `src/js/CaptureConfigs.js` to disable liveReload: false, debugMode: false.
+- Go to `app/src/js/core/config.service.js` to set liveReload: false.
 - Change `serverName` to `zalora`.
 - Check your project is already in projectFilter (define valid projects of a serverName) list or not. If not, add your project key into this list.
 
