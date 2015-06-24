@@ -119,7 +119,39 @@ module.exports  = function (grunt) {
             unit: {
                 configFile: 'my.conf.js'
             }
-        }
+        },
+
+        'string-replace': {
+            files: {
+                src: _configs.app + '/src/js/core/config.service.js',
+                dest: _configs.app + '/src/js/core/config.service.js'
+            },
+            options: {
+                replacements: [
+                    {
+                        pattern: /liveReload: (true|false)/,
+                        replacement: 'liveReload: false'
+                    },
+                    {
+                        pattern: /serverName: '([a-zA-Z]*)'/,
+                        replacement: "serverName: 'zalora'"
+                    }
+                ]
+            }
+        },
+
+        bump: {
+            options: {
+                files: [
+                    'package.json',
+                    _configs.app + '/manifest.json'
+                ],
+                updateConfigs: [],
+                commit: false,
+                createTag: false,
+                push: false
+            }
+        },
     });
 
     grunt.loadNpmTasks('grunt-contrib-jshint');
@@ -132,8 +164,12 @@ module.exports  = function (grunt) {
     grunt.loadNpmTasks('grunt-contrib-concat');
     grunt.loadNpmTasks('grunt-usemin');
     grunt.loadNpmTasks('grunt-karma');
+    grunt.loadNpmTasks('grunt-string-replace');
+    grunt.loadNpmTasks('grunt-bump');
 
     grunt.registerTask('build', [
+        'string-replace',
+
         'clean',
         'uglify:dist',
 
