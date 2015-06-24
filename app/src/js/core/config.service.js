@@ -20,8 +20,8 @@
             get: get
         },
         configs = {
-            liveReload: true,
-            serverName: 'lehungvinh',
+            liveReload: false,
+            serverName: 'zalora',
             serverUrl: 'https://{serverName}.atlassian.net',
             projectFilter: {
                 'zalora': [ // project KEY
