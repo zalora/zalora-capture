@@ -34,7 +34,7 @@ Two dependency files is generated from this repository https://github.com/vinhlh
 
 - Go to `chrome://extensions`
 - Choose `Load unpacked extension`
-- Locate to the repository directory
+- Locate to the repository directory: /app or /dist/<version>
 
 ### Get started
 - Go to `app/src/js/core/config.service.js` to set liveReload: false.
@@ -70,3 +70,18 @@ Run command
 ```
 grunt build
 ```
+
+## Credits
+
+This project uses many open source libraries, including:
+- [AngularJS](https://github.com/angular/angular.js).
+- AngularJS modules: angular-file-upload, angular-material...
+- [Async](https://github.com/caolan/async).
+- [Twitter Bootstrap](http://getbootstrap.com).
+- [Font Awesome](http://fortawesome.github.io/Font-Awesome/).
+- [Jasmine](http://jasmine.github.io).
+- [SnapSVG](http://snapsvg.io/).
+- [BITE project](https://code.google.com/p/bite-project/).
+
+## License
+Zalora Capture is licensed under the MIT Open Source license. For more information, see the LICENSE file in this repository.
