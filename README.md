@@ -73,7 +73,7 @@ grunt build
 
 ## Credits
 
-This project uses many open source libraries, including:
+This project used many open source libraries, including:
 - [AngularJS](https://github.com/angular/angular.js).
 - AngularJS modules: angular-file-upload, angular-material...
 - [Async](https://github.com/caolan/async).
