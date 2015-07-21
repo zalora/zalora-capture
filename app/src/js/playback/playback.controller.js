@@ -38,18 +38,25 @@
                 'project': null
             };
 
-            vm.server = configService.get('serverUrl');
-            jiraService.setServer(vm.server);
-
-            vm.loading = 'Fetching project list..';
-            jiraService.getProjects(function (resp) {
-                vm.projects = jiraService.filterProject(resp);
-                vm.loading = null;
-
-                if (vm.projects.length) {
-                    vm.selected.project = vm.projects[0].id;
-                    vm.getIssues();
+            storageService.getData('server', function (results) {
+                if (typeof results.server !== 'undefined') {
+                    vm.server = results.server;
+                } else {
+                    vm.server = configService.get('serverUrl');
                 }
+
+                jiraService.setServer(vm.server);
+
+                vm.loading = 'Fetching project list..';
+                jiraService.getProjects(function (resp) {
+                    vm.projects = resp;
+                    vm.loading = null;
+
+                    if (vm.projects.length) {
+                        vm.selected.project = vm.projects[0].id;
+                        vm.getIssues();
+                    }
+                });
             });
         }
 

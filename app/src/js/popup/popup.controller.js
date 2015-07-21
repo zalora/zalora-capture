@@ -31,22 +31,33 @@
 
         function init() {
             vm.user = null;
-            vm.server = configService.get('serverUrl');
             vm.info = {};
             vm.selected = {};
             vm.loading = 'Checking your session..';
 
-            // parse login info if available
-            jiraService.getCurUser(vm.server, function (resp) {
-                vm.user = resp;
-                vm.loading = null;
-            }, function () {
-                vm.loading = null;
-                vm.user = null;
+            storageService.getData('server', function (results) {
+                if (typeof results.server !== 'undefined') {
+                    vm.server = results.server;
+
+                    // parse login info if available
+                    jiraService.getCurUser(vm.server, function (resp) {
+                        vm.user = resp;
+                        vm.loading = null;
+                    }, function () {
+                        vm.user = null;
+                        vm.loading = null;
+                    });
+                } else {
+                    vm.server = configService.get('serverUrl');
+
+                    $scope.$apply(function () {
+                        vm.loading = null;
+                    });
+                }
             });
 
             storageService.getData('username', function (results) {
-                if (results) {
+                if (typeof results.username !== 'undefined') {
                     vm.username = results.username;
                 }
             });
@@ -69,7 +80,8 @@
         function logIn () {
             // save data to localStorage
             storageService.saveData({
-                username: vm.username
+                username: vm.username,
+                server: vm.server
             });
 
             vm.loading = 'Logging in..';

@@ -113,9 +113,9 @@
         function fetchAllAtlassianInfo (callback) {
             angular.forEach(configs.APIs.info, function(value, key){
                 basicGet(value, function (resp) {
-                    if (key == 'projects') {
-                        resp = filterProject(resp);
-                    }
+                    // if (key == 'projects') {
+                    //     resp = filterProject(resp);
+                    // }
                     callback(key, resp);
                 });
             });

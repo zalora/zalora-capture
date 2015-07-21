@@ -39,24 +39,32 @@
                 chromeService.sendMessage('processConsoleError', null, null);
             });
 
-            vm.server = configService.get('serverUrl');
-            jiraService.setServer(vm.server);
+            storageService.getData('server', function (results) {
+                if (typeof results.server !== 'undefined') {
+                    vm.server = results.server;
+                } else {
+                    vm.server = configService.get('serverUrl');
+                }
 
-            jiraService.fetchAllAtlassianInfo(function (key, data) {
-                if (key == 'issueTypes') { // filter subtask
-                    var index;
-                    for (index in data) {
-                        if (data[index].subtask) {
-                            data.splice(index, 1);
+                jiraService.setServer(vm.server);
+
+                jiraService.fetchAllAtlassianInfo(function (key, data) {
+                    if (key == 'issueTypes') { // filter subtask
+                        var index;
+                        for (index in data) {
+                            if (data[index].subtask) {
+                                data.splice(index, 1);
+                            }
                         }
                     }
-                }
 
-                vm.info[key] = data;
+                    vm.info[key] = data;
+                    console.log(data);
 
-                if (data.length) {
-                    vm.selected[key] = data[0].id;
-                }
+                    if (data.length) {
+                        vm.selected[key] = data[0].id;
+                    }
+                });
             });
 
             vm.includeEnv = true;
