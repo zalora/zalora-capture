@@ -1,5 +1,5 @@
 
-# zalora-capture ![](https://magnum.travis-ci.com/zalora/zalora-capture.svg?token=EJPnCXSMvAJhC2R2BsbU&branch=master)
+# zalora-capture ![](https://travis-ci.org/zalora/zalora-capture.svg?branch=master)
 
 ### Reporting bugs from Chrome browser.
 
