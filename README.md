@@ -7,6 +7,7 @@ Zalora Capture provides many tools, where:
 
 - Testers can report bugs from the browser with just one click on Chrome extension icon. With a drawing board, they can hight light the part of the page where the bug lives or what was wrong. The tester can also add more text to describe the problem. But the bug has the most interesting and tedious information added to it automatically: page URL, OS and browser stats, chrome console log, and a screenshot. 
 - Developers can reproduce reported bugs with a simple playback tool.
+- Use as a JIRA Capture alternative.
 
 ### Official release
 Download here: https://chrome.google.com/webstore/detail/ohbdhojbmiakhddcglnmjgcdfghhnkaj.
